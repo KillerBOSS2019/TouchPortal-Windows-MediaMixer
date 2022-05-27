@@ -18,199 +18,9 @@ from pycaw.constants import AudioSessionState
 from pycaw.magic import MagicManager, MagicSession
 
 from audioUtil.audioController import (getMasterVolume, muteAndUnMute,
-                                       setMasterVolume, volumeChanger)
-
-__version__ = "1.0"
-
-PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
-
-TP_PLUGIN_INFO = {
-    'sdk': 6,
-    'version': int(float(__version__) * 100),
-    'name': "TouchPortal Windows Media Mixer",
-    'id': PLUGIN_ID,
-    'configuration': {
-        'colorDark': "#6c6f73",
-        'colorLight': "#3d62ad"
-    }
-}
-
-TP_PLUGIN_SETTINGS = {
-    'ignore list': {
-        'name': "Audio process ignore list",
-        'type': "text",
-        'default': "Enter '.exe' name seperated by a comma for more then 1",
-        'readOnly': False,
-        'value': None
-    },
-}
-
-TP_PLUGIN_CATEGORIES = {
-    "main": {
-        'id': PLUGIN_ID + ".main",
-        'name' : "Windows Media Mixer",
-        'imagepath' : "icon-24.png"
-    }
-}
-
-TP_PLUGIN_CONNECTORS = {
-    "APP control": {
-        "id": PLUGIN_ID + ".connector.APPcontrol",
-        "name": "Volume Mixer: APP Volume slider",
-        "format": "Control volume for $[1]",
-        "label": "control app Volume",
-        "data": {
-            "appchoice": {
-                "id": PLUGIN_ID + ".connector.APPcontrol.data.slidercontrol",
-                "type": "choice",
-                "label": "APP choice list for APP control slider",
-                "default": "",
-                "valueChoices": []
-            }
-        }
-    }
-}
-
-TP_PLUGIN_ACTIONS = {
-    'AppMute': {
-        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".act.Mute/Unmute",
-        'name': 'Volume Mixer: Mute/Unmute process volume',
-        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
-        'type': "communicate",
-        'tryInline': True,
-        # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
-        # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
-        # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
-        'format': "$[2] Program:$[1]",
-        'data': {
-            'appChoice': {
-                'id': PLUGIN_ID + ".act.Mute/Unmute.data.process",
-                # "text" is the default type and could be omitted here
-                'type': "choice",
-                'label': "process list",
-                'default': "",
-                "valueChoices": []
-                
-            },
-            'OptionList': {
-                'id': PLUGIN_ID + ".act.Mute/Unmute.data.choice",
-                'type': "choice",
-                'label': "Option choice",
-                'default': "Toggle",
-                "valueChoices": [
-                    "Mute",
-                    "Unmute",
-                    "Toggle"
-                ]
-            },
-        }
-    },
-    'Inc/DecrVol': {
-        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".act.Inc/DecrVol",
-        'name': 'Volume Mixer: Increase/Decrease process volume',
-        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
-        'type': "communicate",
-        'tryInline': True,
-        'format': "$[2]$[1]Volume to$[3]",
-        "hasHoldFunctionality": True,
-        'data': {
-            'AppChoice': {
-                'id': PLUGIN_ID + ".act.Inc/DecrVol.data.process",
-                # "text" is the default type and could be omitted here
-                'type': "choice",
-                'label': "process list",
-                'default': "",
-                "valueChoices": []
-                
-            },
-            'OptionList': {
-                'id': PLUGIN_ID + ".act.Inc/DecrVol.data.choice",
-                'type': "choice",
-                'label': "Option choice",
-                'default': "Toggle",
-                "valueChoices": [
-                    "Increase",
-                    "Decrease",
-                    "Set"
-                ]
-            },
-            'Volume': {
-                'id': PLUGIN_ID + ".act.Inc/DecrVol.data.Volume",
-                'type': "number",
-                'label': "Volume",
-                "allowDecimals": False,
-                "minValue": 0,
-                "maxValue": 100,
-                "default": 10
-            },
-        }
-    },
-    'ChangeOut/Input': {
-        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".act.ChangeAudioOutput",
-        'name': 'Volume Mixer: Change Input/Output Device',
-        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
-        'type': "communicate",
-        'tryInline': True,
-        # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
-        # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
-        # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
-        'format': "Change Audio$[1] to Device$[2]",
-        'data': {
-            'optionSel': {
-                'id': PLUGIN_ID + ".act.ChangeAudioOutput.choice",
-                # "text" is the default type and could be omitted here
-                'type': "choice",
-                'label': "process list",
-                'default': "Pick One",
-                "valueChoices": [
-                    "Output",
-                    "Input"
-                ]
-                
-            },
-            'deviceOption': {
-                'id': PLUGIN_ID + ".act.ChangeAudioOutput.data.device",
-                'type': "choice",
-                'label': "Device choice list",
-                'default': "",
-                "valueChoices": []
-            }
-        }
-    }
-}
-
-TP_PLUGIN_STATES = {
-    'outputDevice': {
-        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentOutputDevice",
-        # "text" is the default type and could be omitted here
-        'type': "text",
-        'desc': "Sound: Get current output device",
-        # we can conveniently use a value here which we already defined above
-        'default': ""
-    },
-    'inputDevice': {
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentInputDevice",
-        'type': "text",
-        'desc': "Sound: Get current Input device",
-        'default': ""
-    },
-    'FocusedAPP': {
-        'category': "main",
-        'id': PLUGIN_ID + ".state.currentFocusedAPP",
-        'type': "text",
-        'desc': "Volume Mixer: current focused app",
-        'default': ""
-    },
-}
+                                       setMasterVolume, volumeChanger, AudioController)
+from audioUtil.tppEntry import *
+from audioUtil.tppEntry import __version__
 
 try:
     TPClient = TP.Client(
@@ -352,8 +162,11 @@ def AudioDeviceCmdlets(command, output=True):
     
     systemencoding = windll.kernel32.GetConsoleOutputCP()
     systemencoding= f"cp{systemencoding}"
-    process = subprocess.Popen(["powershell", "-Command", "Import-Module .\AudioDeviceCmdlets.dll;", command],stdout=subprocess.PIPE, shell=True, encoding=systemencoding)
+    process = subprocess.Popen(["powershell", "-Command",
+                                f"Import-Module .\AudioDeviceCmdlets.dll;", command],
+                                stdout=subprocess.PIPE, shell=True, encoding=systemencoding)
     proc_stdout = process.communicate()[0]
+    print(proc_stdout)
     if output:
         proc_stdout = proc_stdout[proc_stdout.index("["):-1]
         return json.loads(proc_stdout) 
@@ -369,10 +182,10 @@ def updateDeviceOutput(options):
             inputDevice.append(x['Name'])
             
     if options == "Output":
-        TPClient.choiceUpdate('KillerBOSS.TP.Plugins.ChangeAudioOutput.Device', outPutDevice)
+        TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], outPutDevice)
         g_log.debug(f'updating Output {outPutDevice}')
     elif options == "Input":
-        TPClient.choiceUpdate('KillerBOSS.TP.Plugins.ChangeAudioOutput.Device', inputDevice)
+        TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], inputDevice)
         g_log.debug(f'updating input {inputDevice}')
 
 def getActiveExecutablePath():
@@ -395,10 +208,21 @@ def stateUpdate():
             """
             TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
 
-        if counter%5 == 0:
             TPClient.connectorUpdate(
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
                     getMasterVolume())
+
+            activeWindow = getActiveExecutablePath()
+            if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
+                TPClient.connectorUpdate(
+                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                        int(current_app_volume*100.0))
+            else:
+                TPClient.connectorUpdate(
+                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                        0)
+            
+            
             # g_log.info(str(getMasterVolume()))
 
         if counter >= 40: counter = 0; # clear ram because It could build really large number
@@ -450,6 +274,8 @@ def onAction(data):
             muteAndUnMute(action_data[0]['value'], action_data[1]['value'])
     elif actionid == TP_PLUGIN_ACTIONS['Inc/DecrVol']['id']:
         volumeChanger(action_data[0]['value'], action_data[1]['value'], action_data[2]['value'])
+    elif actionid == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["id"] and action_data[0]['value'] != "Pick One": 
+        AudioDeviceCmdlets(f"(Get-AudioDevice -list | Where-Object Name -like (\'{data['data'][1]['value']}') | Set-AudioDevice).Name", output=False)
     else:
         g_log.warning("Got unknown action ID: " + actionid)
 
@@ -484,7 +310,7 @@ def connectors(data):
 @TPClient.on(TP.TYPES.onListChange)
 def onListChange(data):
     g_log.debug(f"onlistChange: {data}")
-    if data['actionId'] == 'KillerBOSS.TP.Plugins.ChangeAudioOutput':
+    if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id']:
         try:
             updateDeviceOutput(data['value'])
         except KeyError as e:

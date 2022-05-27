@@ -7,16 +7,17 @@
     "colorDark": "#6c6f73",
     "colorLight": "#3d62ad"
   },
+  "plugin_start_cmd": "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\TPAudioMixer.exe",
   "categories": [
     {
       "id": "com.github.KillerBOSS2019.WinMediaMixer.main",
-      "name": "Windows Media Mixer",
-      "imagepath": "icon-24.png",
+      "name": "Author: KillerBOSS",
+      "imagepath": "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\icon-24.png",
       "actions": [
         {
           "id": "com.github.KillerBOSS2019.WinMediaMixer.act.Mute/Unmute",
           "name": "Volume Mixer: Mute/Unmute process volume",
-          "prefix": "Windows Media Mixer",
+          "prefix": "Author: KillerBOSS",
           "type": "communicate",
           "format": "{$com.github.KillerBOSS2019.WinMediaMixer.act.Mute/Unmute.data.choice$} Program:{$com.github.KillerBOSS2019.WinMediaMixer.act.Mute/Unmute.data.process$}",
           "tryInline": true,
@@ -44,7 +45,7 @@
         {
           "id": "com.github.KillerBOSS2019.WinMediaMixer.act.Inc/DecrVol",
           "name": "Volume Mixer: Increase/Decrease process volume",
-          "prefix": "Windows Media Mixer",
+          "prefix": "Author: KillerBOSS",
           "type": "communicate",
           "format": "{$com.github.KillerBOSS2019.WinMediaMixer.act.Inc/DecrVol.data.choice$}{$com.github.KillerBOSS2019.WinMediaMixer.act.Inc/DecrVol.data.process$}Volume to{$com.github.KillerBOSS2019.WinMediaMixer.act.Inc/DecrVol.data.Volume$}",
           "tryInline": true,
@@ -78,33 +79,6 @@
               "maxValue": 100
             }
           ]
-        },
-        {
-          "id": "com.github.KillerBOSS2019.WinMediaMixer.act.ChangeAudioOutput",
-          "name": "Volume Mixer: Change Input/Output Device",
-          "prefix": "Windows Media Mixer",
-          "type": "communicate",
-          "format": "Change Audio{$com.github.KillerBOSS2019.WinMediaMixer.act.ChangeAudioOutput.choice$} to Device{$com.github.KillerBOSS2019.WinMediaMixer.act.ChangeAudioOutput.data.device$}",
-          "tryInline": true,
-          "data": [
-            {
-              "id": "com.github.KillerBOSS2019.WinMediaMixer.act.ChangeAudioOutput.choice",
-              "type": "choice",
-              "label": "process list",
-              "default": "Pick One",
-              "valueChoices": [
-                "Output",
-                "Input"
-              ]
-            },
-            {
-              "id": "com.github.KillerBOSS2019.WinMediaMixer.act.ChangeAudioOutput.data.device",
-              "type": "choice",
-              "label": "Device choice list",
-              "default": "",
-              "valueChoices": []
-            }
-          ]
         }
       ],
       "states": [
@@ -118,6 +92,12 @@
           "id": "com.github.KillerBOSS2019.WinMediaMixer.state.CurrentInputDevice",
           "type": "text",
           "desc": "Sound: Get current Input device",
+          "default": ""
+        },
+        {
+          "id": "com.github.KillerBOSS2019.WinMediaMixer.state.currentFocusedAPP",
+          "type": "text",
+          "desc": "Volume Mixer: current focused app",
           "default": ""
         }
       ],
