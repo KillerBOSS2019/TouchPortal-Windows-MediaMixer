@@ -3,3 +3,4 @@
 *.pyc
 *.pyc
 src/entry.tp
+*.tpp

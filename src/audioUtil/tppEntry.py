@@ -110,7 +110,7 @@ TP_PLUGIN_ACTIONS = {
                 'id': PLUGIN_ID + ".act.Inc/DecrVol.data.choice",
                 'type': "choice",
                 'label': "Option choice",
-                'default': "Toggle",
+                'default': "Increase",
                 "valueChoices": [
                     "Increase",
                     "Decrease",
@@ -165,23 +165,23 @@ TP_PLUGIN_ACTIONS = {
 }
 
 TP_PLUGIN_STATES = {
-    'outputDevice': {
-        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentOutputDevice",
-        # "text" is the default type and could be omitted here
-        'type': "text",
-        'desc': "Sound: Get current output device",
-        # we can conveniently use a value here which we already defined above
-        'default': ""
-    },
-    'inputDevice': {
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentInputDevice",
-        'type': "text",
-        'desc': "Sound: Get current Input device",
-        'default': ""
-    },
+    # 'outputDevice': {
+    #     # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentOutputDevice",
+    #     # "text" is the default type and could be omitted here
+    #     'type': "text",
+    #     'desc': "Sound: Get current output device",
+    #     # we can conveniently use a value here which we already defined above
+    #     'default': ""
+    # },
+    # 'inputDevice': {
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentInputDevice",
+    #     'type': "text",
+    #     'desc': "Sound: Get current Input device",
+    #     'default': ""
+    # },
     'FocusedAPP': {
         'category': "main",
         'id': PLUGIN_ID + ".state.currentFocusedAPP",
