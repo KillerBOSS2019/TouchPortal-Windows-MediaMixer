@@ -4,7 +4,7 @@ import subprocess
 import sys
 from argparse import ArgumentParser
 from ctypes import windll
-from logging import (DEBUG, INFO, WARNING, FileHandler, Formatter, NullHandler,
+from logging import (DEBUG, INFO, WARNING, ERROR, NOTSET, FileHandler, Formatter, NullHandler,
                      StreamHandler, getLogger)
 from threading import Thread
 from time import sleep
@@ -16,6 +16,8 @@ import TouchPortalAPI as TP
 import win32process
 from pycaw.constants import AudioSessionState
 from pycaw.magic import MagicManager, MagicSession
+from pycaw.pycaw import EDataFlow, ERole
+from audioUtil import audioSwitch
 
 from audioUtil.audioController import (getMasterVolume, muteAndUnMute,
                                        setMasterVolume, volumeChanger, AudioController)
@@ -41,6 +43,13 @@ volumeprocess = ["Master Volume", "Current app"]
 running = False
 pythoncom.CoInitialize()
 
+dataMapper = {
+            "Output": EDataFlow.eRender.value,
+            "Input": EDataFlow.eCapture.value,
+            "Default": ERole.eMultimedia.value,
+            "Communications": ERole.eCommunications.value
+        }
+
 def updateVolumeMixerChoicelist():
     TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["Inc/DecrVol"]['data']['AppChoice']['id'], volumeprocess)
     TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["AppMute"]['data']['appChoice']['id'], volumeprocess)
@@ -58,7 +67,7 @@ def removeAudioState(app_name):
 
 def audioStateManager(app_name):
     global volumeprocess
-    g_log.debug("AUDIO EXEMPT LIST", audio_ignore_list)
+    g_log.debug(f"AUDIO EXEMPT LIST {audio_ignore_list}")
 
     if app_name not in volumeprocess:
         TPClient.createStateMany([
@@ -119,15 +128,15 @@ class WinAudioCallBack(MagicSession):
             if new_state == AudioSessionState.Inactive:
                 # AudioSessionStateInactive
                 """Sesssion is Inactive"""
-                #print(f"{self.app_name} not active")
+                print(f"{self.app_name} not active")
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.active","False")
     
             elif new_state == AudioSessionState.Active:
                 """Session Active"""
-                #print(f"{self.app_name} is an Active Session")
+                print(f"{self.app_name} is an Active Session")
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.active","True")
     
-        elif new_state == AudioSessionState.Expired:
+        if new_state == AudioSessionState.Expired:
             """Removing Expired States"""
             removeAudioState(self.app_name)
 
@@ -157,36 +166,11 @@ class WinAudioCallBack(MagicSession):
             if audioStateManager(self.app_name): # Only update state if `AudioStateManager` does not remove it
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.muteState", "Muted" if muted else "Un-muted")
 
-def AudioDeviceCmdlets(command, output=True):
-    ### add in another coinitilize???  
-    
-    systemencoding = windll.kernel32.GetConsoleOutputCP()
-    systemencoding= f"cp{systemencoding}"
-    process = subprocess.Popen(["powershell", "-Command",
-                                f"Import-Module .\AudioDeviceCmdlets.dll;", command],
-                                stdout=subprocess.PIPE, shell=True, encoding=systemencoding)
-    proc_stdout = process.communicate()[0]
-    print(proc_stdout)
-    if output:
-        proc_stdout = proc_stdout[proc_stdout.index("["):-1]
-        return json.loads(proc_stdout) 
+def updateDevice(options):
+    deviceList = [device.FriendlyName for device in audioSwitch.MyAudioUtilities.getAllDevices(options)]
+    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], deviceList)
+    g_log.debug(f'updating {options} {deviceList}')
 
-def updateDeviceOutput(options):
-    output = AudioDeviceCmdlets('Get-AudioDevice -List | ConvertTo-Json')
-    outPutDevice = []
-    inputDevice = []
-    for x in output:
-        if x['Type'] == "Playback":
-            outPutDevice.append(x['Name'])
-        elif x['Type'] == "Recording":
-            inputDevice.append(x['Name'])
-            
-    if options == "Output":
-        TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], outPutDevice)
-        g_log.debug(f'updating Output {outPutDevice}')
-    elif options == "Input":
-        TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], inputDevice)
-        g_log.debug(f'updating input {inputDevice}')
 
 def getActiveExecutablePath():
     hWnd = windll.user32.GetForegroundWindow()
@@ -195,6 +179,23 @@ def getActiveExecutablePath():
     else:
         _, pid = win32process.GetWindowThreadProcessId(hWnd)
         return psutil.Process(pid).exe()
+
+def getDevicebydata(edata, erole):
+    device = ""
+    try:
+        device = audioSwitch.MyAudioUtilities.GetDeviceState(edata, erole)
+    except:
+        pass
+
+    if device:
+        for x in audioSwitch.MyAudioUtilities.getAllDevices("Output" if edata == EDataFlow.eRender.value else "Input"):
+            if device.GetId() == x.id:
+                return x.FriendlyName
+
+    return device
+        
+        
+        
 
 def stateUpdate():
     counter = 0
@@ -212,16 +213,21 @@ def stateUpdate():
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
                     getMasterVolume())
 
-            activeWindow = getActiveExecutablePath()
-            if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-                TPClient.connectorUpdate(
-                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                        int(current_app_volume*100.0))
-            else:
-                TPClient.connectorUpdate(
-                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                        0)
-            
+            # activeWindow = getActiveExecutablePath()
+            # if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
+            #     TPClient.connectorUpdate(
+            #             f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+            #             int(current_app_volume*100.0))
+            # else:
+            #     TPClient.connectorUpdate(
+            #             f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+            #             0)
+
+            TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
+
+            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDevice"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eMultimedia.value))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDeviceCommication"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eCommunications.value))
             
             # g_log.info(str(getMasterVolume()))
 
@@ -248,8 +254,9 @@ def onConnect(data):
     pythoncom.CoInitialize()
     try:
         MagicManager.magic_session(WinAudioCallBack)
-    except NotImplementedError as err:
-        g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
+    except Exception as e:
+        print(e)
+        #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
     
     Thread(target=stateUpdate).start()
     
@@ -275,7 +282,10 @@ def onAction(data):
     elif actionid == TP_PLUGIN_ACTIONS['Inc/DecrVol']['id']:
         volumeChanger(action_data[0]['value'], action_data[1]['value'], action_data[2]['value'])
     elif actionid == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["id"] and action_data[0]['value'] != "Pick One": 
-        AudioDeviceCmdlets(f"(Get-AudioDevice -list | Where-Object Name -like (\'{data['data'][1]['value']}') | Set-AudioDevice).Name", output=False)
+        for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
+            if device.FriendlyName == action_data[1]['value']:
+                audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
+
     else:
         g_log.warning("Got unknown action ID: " + actionid)
 
@@ -310,10 +320,10 @@ def connectors(data):
 @TPClient.on(TP.TYPES.onListChange)
 def onListChange(data):
     g_log.debug(f"onlistChange: {data}")
-    if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id']:
+    if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
-            updateDeviceOutput(data['value'])
-        except KeyError as e:
+            updateDevice(data['value'])
+        except Exception as e:
             g_log.warning("Update device input/output KeyError", exc_info=e)
 
 # Shutdown handler
@@ -356,14 +366,24 @@ def main():
             datefmt="%H:%M:%S", style="{"
         )
         # set the logging level
-        if   opts.d: g_log.setLevel(DEBUG)
-        elif opts.w: g_log.setLevel(WARNING)
-        else:        g_log.setLevel(INFO)
+        # if   opts.d: g_log.setLevel(DEBUG)
+        # elif opts.w: g_log.setLevel(WARNING)
+        # else:        g_log.setLevel(DEBUG)
+
+        # g_log.setLevel(DEBUG)
+        
+        # g_log.setLevel(WARNING)
+
+        # g_log.setLevel(DEBUG)
+
+        g_log.setLevel(NOTSET)
+
+
         # set up log destination (file/stdout)
-        if opts.l:
+        if True:
             try:
                 # note that this will keep appending to any existing log file
-                fh = FileHandler(str(opts.l))
+                fh = FileHandler(str("log.txt"))
                 fh.setFormatter(fmt)
                 g_log.addHandler(fh)
             except Exception as e:

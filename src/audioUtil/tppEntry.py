@@ -128,60 +128,89 @@ TP_PLUGIN_ACTIONS = {
             },
         }
     },
-    # 'ChangeOut/Input': {
-    #     # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
-    #     'category': "main",
-    #     'id': PLUGIN_ID + ".act.ChangeAudioOutput",
-    #     'name': 'Volume Mixer: Change Input/Output Device',
-    #     'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
-    #     'type': "communicate",
-    #     'tryInline': True,
-    #     # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
-    #     # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
-    #     # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
-    #     'format': "Change Audio$[1] to Device$[2]",
-    #     'data': {
-    #         'optionSel': {
-    #             'id': PLUGIN_ID + ".act.ChangeAudioOutput.choice",
-    #             # "text" is the default type and could be omitted here
-    #             'type': "choice",
-    #             'label': "process list",
-    #             'default': "Pick One",
-    #             "valueChoices": [
-    #                 "Output",
-    #                 "Input"
-    #             ]
+    'ChangeOut/Input': {
+        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
+        'category': "main",
+        'id': PLUGIN_ID + ".act.ChangeAudioOutput",
+        'name': 'Volume Mixer: Change Default Audio Devices',
+        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
+        'type': "communicate",
+        'tryInline': True,
+        # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
+        # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
+        # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
+        'format': "Set Audio $[1] $[2] to $[3]",
+        'data': {
+            'optionSel': {
+                'id': PLUGIN_ID + ".act.ChangeAudioOutput.choice",
+                # "text" is the default type and could be omitted here
+                'type': "choice",
+                'label': "process list",
+                'default': "Pick One",
+                "valueChoices": [
+                    "Output",
+                    "Input"
+                ]
                 
-    #         },
-    #         'deviceOption': {
-    #             'id': PLUGIN_ID + ".act.ChangeAudioOutput.data.device",
-    #             'type': "choice",
-    #             'label': "Device choice list",
-    #             'default': "",
-    #             "valueChoices": []
-    #         }
-    #     }
-    # }
+            },
+            'deviceOption': {
+                'id': PLUGIN_ID + ".act.ChangeAudioOutput.data.device",
+                'type': "choice",
+                'label': "Device choice list",
+                'default': "",
+                "valueChoices": []
+            },
+            'setType': {
+                'id': PLUGIN_ID + ".act.ChangeAudioOutput.setType",
+                # "text" is the default type and could be omitted here
+                'type': "choice",
+                'label': "Set audio device type",
+                'default': "Default",
+                "valueChoices": [
+                    "Default",
+                    "Communications"
+                ]
+                
+            },
+        }
+    }
 }
 
 TP_PLUGIN_STATES = {
-    # 'outputDevice': {
-    #     # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
-    #     'category': "main",
-    #     'id': PLUGIN_ID + ".state.CurrentOutputDevice",
-    #     # "text" is the default type and could be omitted here
-    #     'type': "text",
-    #     'desc': "Sound: Get current output device",
-    #     # we can conveniently use a value here which we already defined above
-    #     'default': ""
-    # },
-    # 'inputDevice': {
-    #     'category': "main",
-    #     'id': PLUGIN_ID + ".state.CurrentInputDevice",
-    #     'type': "text",
-    #     'desc': "Sound: Get current Input device",
-    #     'default': ""
-    # },
+    'outputDevice': {
+        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
+        'category': "main",
+        'id': PLUGIN_ID + ".state.CurrentOutputDevice",
+        # "text" is the default type and could be omitted here
+        'type': "text",
+        'desc': "Audio Device: Get default Output devices",
+        # we can conveniently use a value here which we already defined above
+        'default': ""
+    },
+    'outputcommicationDevice': {
+        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
+        'category': "main",
+        'id': PLUGIN_ID + ".state.CurrentOutputCommicationDevice",
+        # "text" is the default type and could be omitted here
+        'type': "text",
+        'desc': "Audio Device: Get default Output commication devices",
+        # we can conveniently use a value here which we already defined above
+        'default': ""
+    },
+    'inputDevice': {
+        'category': "main",
+        'id': PLUGIN_ID + ".state.CurrentInputDevice",
+        'type': "text",
+        'desc': "Audio Device: Get default input device",
+        'default': ""
+    },
+    'inputDeviceCommication': {
+        'category': "main",
+        'id': PLUGIN_ID + ".state.CurrentInputCommucationDevice",
+        'type': "text",
+        'desc': "Audio Device: Get default input commucation device",
+        'default': ""
+    },
     'FocusedAPP': {
         'category': "main",
         'id': PLUGIN_ID + ".state.currentFocusedAPP",
