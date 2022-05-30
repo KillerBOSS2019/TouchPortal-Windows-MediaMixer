@@ -128,7 +128,7 @@
                 {
                     "id": "com.github.KillerBOSS2019.WinMediaMixer.state.CurrentOutputCommicationDevice",
                     "type": "text",
-                    "desc": "Audio Device: Get default Output commication devices",
+                    "desc": "Audio Device: Get default Output Communications devices",
                     "default": ""
                 },
                 {
@@ -140,7 +140,7 @@
                 {
                     "id": "com.github.KillerBOSS2019.WinMediaMixer.state.CurrentInputCommucationDevice",
                     "type": "text",
-                    "desc": "Audio Device: Get default input commucation device",
+                    "desc": "Audio Device: Get default input Communications device",
                     "default": ""
                 },
                 {

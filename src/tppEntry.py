@@ -193,7 +193,7 @@ TP_PLUGIN_STATES = {
         'id': PLUGIN_ID + ".state.CurrentOutputCommicationDevice",
         # "text" is the default type and could be omitted here
         'type': "text",
-        'desc': "Audio Device: Get default Output commication devices",
+        'desc': "Audio Device: Get default Output Communications devices",
         # we can conveniently use a value here which we already defined above
         'default': ""
     },
@@ -208,7 +208,7 @@ TP_PLUGIN_STATES = {
         'category': "main",
         'id': PLUGIN_ID + ".state.CurrentInputCommucationDevice",
         'type': "text",
-        'desc': "Audio Device: Get default input commucation device",
+        'desc': "Audio Device: Get default input Communications device",
         'default': ""
     },
     'FocusedAPP': {
