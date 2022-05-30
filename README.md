@@ -58,21 +58,21 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
 
 This plugin will create for each application
 - appname.exe Mute state
-   This gives `Muted` or `Un-muted` depends on application
+   - This gives `Muted` or `Un-muted` depends on application
 - is appname.exe Active
-    This gives `True` or `False` It will show `True` if application is playing sound
+    - This gives `True` or `False` It will show `True` if application is playing sound
 - appname.exe Volume
-    This shows this application's volume
+    - This shows this application's volume
 - Audio Device: Get default Output devices
-    This shows your current Default output device
+    - This shows your current Default output device
 - Audio Device: Get default Output commication devices
-    This shows your Default output commication device
+    - This shows your Default output commication device
 - Audio Device: Get default input device
-    This shows your default input device
+    - This shows your default input device
 - Audio Device: Get default input commucation device
-    This shows your default input commucation device
+    - This shows your default input commucation device
 - Volume Mixer: current focused app
-    This gives you current focused app
+    - This gives you current focused app
 
 ### Slider
 
