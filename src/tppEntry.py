@@ -1,10 +1,10 @@
-__version__ = "1.0"
+from build import __version__
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 
 TP_PLUGIN_INFO = {
     'sdk': 6,
-    'version': int(float(__version__) * 100),
+    'version': __version__,
     'name': "TouchPortal Windows Media Mixer",
     'id': PLUGIN_ID,
     'plugin_start_cmd': "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\TPAudioMixer.exe",

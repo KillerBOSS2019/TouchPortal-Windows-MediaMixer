@@ -1,10 +1,8 @@
-import json
 import os
-import subprocess
 import sys
 from argparse import ArgumentParser
 from ctypes import windll
-from logging import (DEBUG, INFO, WARNING, ERROR, NOTSET, FileHandler, Formatter, NullHandler,
+from logging import (DEBUG, INFO, WARNING, FileHandler, Formatter, NullHandler,
                      StreamHandler, getLogger)
 from threading import Thread
 from time import sleep
@@ -21,8 +19,8 @@ from audioUtil import audioSwitch
 
 from audioUtil.audioController import (getMasterVolume, muteAndUnMute,
                                        setMasterVolume, volumeChanger, AudioController)
-from audioUtil.tppEntry import *
-from audioUtil.tppEntry import __version__
+from tppEntry import *
+from tppEntry import __version__
 
 try:
     TPClient = TP.Client(
@@ -51,8 +49,8 @@ dataMapper = {
         }
 
 def updateVolumeMixerChoicelist():
-    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["Inc/DecrVol"]['data']['AppChoice']['id'], volumeprocess)
-    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["AppMute"]['data']['appChoice']['id'], volumeprocess)
+    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["Inc/DecrVol"]['data']['AppChoice']['id'], volumeprocess[1:])
+    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["AppMute"]['data']['appChoice']['id'], volumeprocess[1:])
     TPClient.choiceUpdate(TP_PLUGIN_CONNECTORS["APP control"]["data"]["appchoice"]['id'], volumeprocess)
 
 def removeAudioState(app_name):
@@ -70,6 +68,7 @@ def audioStateManager(app_name):
     g_log.debug(f"AUDIO EXEMPT LIST {audio_ignore_list}")
 
     if app_name not in volumeprocess:
+        print("Creating states")
         TPClient.createStateMany([
                 {   
                     "id": PLUGIN_ID + f".createState.{app_name}.muteState",
@@ -99,8 +98,8 @@ def audioStateManager(app_name):
     """ Checking for Exempt Audio"""
     if app_name in audio_ignore_list:
         removeAudioState(app_name)
-        return False
-    return True
+        return True
+    return False
 
 class WinAudioCallBack(MagicSession):
     def __init__(self):
@@ -163,7 +162,9 @@ class WinAudioCallBack(MagicSession):
         """ when mute state is changed by user or through other app """
         
         if self.app_name not in audio_ignore_list:
-            if audioStateManager(self.app_name): # Only update state if `AudioStateManager` does not remove it
+            isDeleted = audioStateManager(self.app_name)
+
+            if not isDeleted:
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.muteState", "Muted" if muted else "Un-muted")
 
 def updateDevice(options):
@@ -213,15 +214,15 @@ def stateUpdate():
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
                     getMasterVolume())
 
-            # activeWindow = getActiveExecutablePath()
-            # if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-            #     TPClient.connectorUpdate(
-            #             f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-            #             int(current_app_volume*100.0))
-            # else:
-            #     TPClient.connectorUpdate(
-            #             f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-            #             0)
+            activeWindow = getActiveExecutablePath()
+            if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
+                TPClient.connectorUpdate(
+                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                        int(current_app_volume*100.0))
+            else:
+                TPClient.connectorUpdate(
+                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                        0)
 
             TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
             TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
@@ -278,9 +279,21 @@ def onAction(data):
 
     elif actionid == TP_PLUGIN_ACTIONS['AppMute']['id']:
         if action_data[0]['value'] != '':
-            muteAndUnMute(action_data[0]['value'], action_data[1]['value'])
+            if action_data[0]['value'] == "Current app":
+                activeWindow = getActiveExecutablePath()
+                if activeWindow != "":
+                    muteAndUnMute(os.path.basename(activeWindow), action_data[1]['value'])
+            elif action_data[0]['value'] == "Master Volume":
+                pass # idk
+            else:
+                muteAndUnMute(action_data[0]['value'], action_data[1]['value'])
     elif actionid == TP_PLUGIN_ACTIONS['Inc/DecrVol']['id']:
-        volumeChanger(action_data[0]['value'], action_data[1]['value'], action_data[2]['value'])
+        if action_data[0]['value'] == "Current app":
+            activeWindow = getActiveExecutablePath()
+            if activeWindow != "":
+                volumeChanger(os.path.basename(activeWindow), action_data[1]['value'], action_data[2]['value'])
+        else:
+            volumeChanger(action_data[0]['value'], action_data[1]['value'], action_data[2]['value'])
     elif actionid == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["id"] and action_data[0]['value'] != "Pick One": 
         for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
             if device.FriendlyName == action_data[1]['value']:
@@ -366,21 +379,13 @@ def main():
             datefmt="%H:%M:%S", style="{"
         )
         # set the logging level
-        # if   opts.d: g_log.setLevel(DEBUG)
-        # elif opts.w: g_log.setLevel(WARNING)
-        # else:        g_log.setLevel(DEBUG)
-
-        # g_log.setLevel(DEBUG)
-        
-        # g_log.setLevel(WARNING)
-
-        # g_log.setLevel(DEBUG)
-
-        g_log.setLevel(NOTSET)
+        if   opts.d: g_log.setLevel(DEBUG)
+        elif opts.w: g_log.setLevel(WARNING)
+        else:        g_log.setLevel(INFO)
 
 
         # set up log destination (file/stdout)
-        if True:
+        if opts.l:
             try:
                 # note that this will keep appending to any existing log file
                 fh = FileHandler(str("log.txt"))

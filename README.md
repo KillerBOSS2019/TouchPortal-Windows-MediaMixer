@@ -13,6 +13,21 @@ a TouchPortal plugin that allows you to control Window's default audio mixer.
 
 # Change Log
 ```
+v1.1.0 - Device Output & bug fixes (5/29/2022)
+    Whats added?
+        - Action
+            - Volume Mixer: Change Default Audio Devices
+        - State
+            - Audio Device: Get default Output devices
+            - Audio Device: Get default Output commication devices
+            - Audio Device: Get default input device
+            - Audio Device: Get default input commucation device
+    Bug fixes:
+        - Plugin does not delete expired application state
+    
+    Known error:
+        to my experice plugin randomly crashes (currently debugging this)
+
 
 v1.0.0 - InitialRelease (5/26/2022)
    Features:
@@ -34,9 +49,12 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
     This allows you to Toggle/Mute/Unmute any program you pick.
 - Volume Mixer: Increase/Decrease process volume
     It allows you to Increase/Decrease/Set any application Volume
+- Volume Mixer: Change Default Audio Devices
+    This allows you to change your Commucation or Default device for both Input or output
 
 ## State
 ![State list](images/states.png)
+![Audio state](images/AudioDevice.png)
 
 This plugin will create for each application
 - appname.exe Mute state
@@ -45,6 +63,16 @@ This plugin will create for each application
     This gives `True` or `False` It will show `True` if application is playing sound
 - appname.exe Volume
     This shows this application's volume
+- Audio Device: Get default Output devices
+    This shows your current Default output device
+- Audio Device: Get default Output commication devices
+    This shows your Default output commication device
+- Audio Device: Get default input device
+    This shows your default input device
+- Audio Device: Get default input commucation device
+    This shows your default input commucation device
+- Volume Mixer: current focused app
+    This gives you current focused app
 
 ### Slider
 
