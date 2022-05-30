@@ -46,11 +46,11 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
 ![Action List](images/actions.png)
 
 - Volume Mixer: Mute/Unmute process volume
-    This allows you to Toggle/Mute/Unmute any program you pick.
+    - This allows you to Toggle/Mute/Unmute any program you pick.
 - Volume Mixer: Increase/Decrease process volume
-    It allows you to Increase/Decrease/Set any application Volume
+    - It allows you to Increase/Decrease/Set any application Volume
 - Volume Mixer: Change Default Audio Devices
-    This allows you to change your Commucation or Default device for both Input or output
+    - This allows you to change your Commucation or Default device for both Input or output
 
 ## State
 ![State list](images/states.png)
