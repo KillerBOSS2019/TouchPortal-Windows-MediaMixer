@@ -17,7 +17,7 @@ versionPatch = 0
 This will convert version from above into TP version eg
 if Major 1, Minor 0, and Patch 0 output would be 1000 and if you change Minor to 1 it would be 1100 etc..
 """
-__version__ = str(versionMajor * 1000 + versionMinor * 100 + versionPatch)
+__version__ = versionMajor * 1000 + versionMinor * 100 + versionPatch
 
 """
 PLUGIN_MAIN: This let tppbuild to know where is your main python located so then It will know which file to compile
@@ -27,7 +27,7 @@ PLUGIN_EXE_ICON: This should be a path to a .ico file that's used for the compil
 """
 PLUGIN_MAIN = r"TPAudioMixer.py"
 PLUGIN_EXE_NAME = "TPAudioMixer"
-PLUGIN_EXE_ICON = r""
+PLUGIN_EXE_ICON = r"icon.ico"
 
 
 """
@@ -35,7 +35,7 @@ PLUGIN_ENTRY: This can be either path to entry.tp or path to a python file that 
 Note if you pass in a entry.tp tppbuild will automatically validate the json. but if you pass in python file it will
 build entry.tp & validate it for you.
 """
-PLUGIN_ENTRY = r"tppEntry.py"
+PLUGIN_ENTRY = r"entry.tp"
 PLUGIN_ROOT = "TouchPortalMediaMixer" # This is the root folder name that's inside of .tpp
 PLUGIN_ICON = r"icon-24.png" # This should be a path that goes to a icon that's for entry.tp
 OUTPUT_PATH = r"./output" # This tells tppbuild where you want finished build tpp to be saved at. Default ./ meaning current dir build script
