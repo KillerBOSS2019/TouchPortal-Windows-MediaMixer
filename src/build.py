@@ -11,13 +11,13 @@ PATCH version when you make backwards compatible bug fixes.
 """
 versionMajor = 1
 versionMinor = 1
-versionPatch = 0
+versionPatch = 1
 
 """
 This will convert version from above into TP version eg
-if Major 1, Minor 0, and Patch 0 output would be 1000 and if you change Minor to 1 it would be 1100 etc..
+if Major 1, Minor 0, and Patch 0 output would be 10000 and if you change Minor to 1 it would be 1100 etc..
 """
-__version__ = versionMajor * 1000 + versionMinor * 100 + versionPatch
+__version__ = versionMajor * 10000 + versionMinor * 100 + versionPatch
 
 """
 PLUGIN_MAIN: This let tppbuild to know where is your main python located so then It will know which file to compile
@@ -35,7 +35,7 @@ PLUGIN_ENTRY: This can be either path to entry.tp or path to a python file that 
 Note if you pass in a entry.tp tppbuild will automatically validate the json. but if you pass in python file it will
 build entry.tp & validate it for you.
 """
-PLUGIN_ENTRY = r"entry.tp"
+PLUGIN_ENTRY = r"tppEntry.py"
 PLUGIN_ROOT = "TouchPortalMediaMixer" # This is the root folder name that's inside of .tpp
 PLUGIN_ICON = r"icon-24.png" # This should be a path that goes to a icon that's for entry.tp
 OUTPUT_PATH = r"./output" # This tells tppbuild where you want finished build tpp to be saved at. Default ./ meaning current dir build script
@@ -54,7 +54,8 @@ Pyinstaller_arg = [
     f'{PLUGIN_MAIN}',
     f'--name={PLUGIN_EXE_NAME if PLUGIN_EXE_NAME != "" else os.path.basename(PLUGIN_MAIN)[:os.path.basename(PLUGIN_MAIN).find(".py")]}',
     '--onefile',
-    f'--distpath=./'
+    f'--distpath=./',
+    "--clean"
 ]
 if PLUGIN_EXE_ICON and os.path.isfile(PLUGIN_EXE_ICON): # This just checks if it can find the exe icon. if not It won't use it. Please double check the path
     Pyinstaller_arg.append(f"--icon={PLUGIN_EXE_ICON}")

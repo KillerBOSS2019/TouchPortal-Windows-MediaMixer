@@ -177,40 +177,40 @@ TP_PLUGIN_ACTIONS = {
 }
 
 TP_PLUGIN_STATES = {
-    'outputDevice': {
-        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentOutputDevice",
-        # "text" is the default type and could be omitted here
-        'type': "text",
-        'desc': "Audio Device: Get default Output devices",
-        # we can conveniently use a value here which we already defined above
-        'default': ""
-    },
-    'outputcommicationDevice': {
-        # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentOutputCommicationDevice",
-        # "text" is the default type and could be omitted here
-        'type': "text",
-        'desc': "Audio Device: Get default Output Communications devices",
-        # we can conveniently use a value here which we already defined above
-        'default': ""
-    },
-    'inputDevice': {
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentInputDevice",
-        'type': "text",
-        'desc': "Audio Device: Get default input device",
-        'default': ""
-    },
-    'inputDeviceCommication': {
-        'category': "main",
-        'id': PLUGIN_ID + ".state.CurrentInputCommucationDevice",
-        'type': "text",
-        'desc': "Audio Device: Get default input Communications device",
-        'default': ""
-    },
+    # 'outputDevice': {
+    #     # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentOutputDevice",
+    #     # "text" is the default type and could be omitted here
+    #     'type': "text",
+    #     'desc': "Audio Device: Get default Output devices",
+    #     # we can conveniently use a value here which we already defined above
+    #     'default': ""
+    # },
+    # 'outputcommicationDevice': {
+    #     # 'category' is optional, if omitted then this state will be added to all, or the only, category(ies)
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentOutputCommicationDevice",
+    #     # "text" is the default type and could be omitted here
+    #     'type': "text",
+    #     'desc': "Audio Device: Get default Output Communications devices",
+    #     # we can conveniently use a value here which we already defined above
+    #     'default': ""
+    # },
+    # 'inputDevice': {
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentInputDevice",
+    #     'type': "text",
+    #     'desc': "Audio Device: Get default input device",
+    #     'default': ""
+    # },
+    # 'inputDeviceCommication': {
+    #     'category': "main",
+    #     'id': PLUGIN_ID + ".state.CurrentInputCommucationDevice",
+    #     'type': "text",
+    #     'desc': "Audio Device: Get default input Communications device",
+    #     'default': ""
+    # },
     'FocusedAPP': {
         'category': "main",
         'id': PLUGIN_ID + ".state.currentFocusedAPP",

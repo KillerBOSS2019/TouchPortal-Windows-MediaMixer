@@ -22,6 +22,8 @@ from audioUtil.audioController import (getMasterVolume, muteAndUnMute,
 from tppEntry import *
 from tppEntry import __version__
 
+sys.coinit_flags = 0
+
 try:
     TPClient = TP.Client(
         pluginId = PLUGIN_ID,  # required ID of this plugin
@@ -197,7 +199,6 @@ def getDevicebydata(edata, erole):
         
         
         
-
 def stateUpdate():
     counter = 0
     while running:
@@ -224,14 +225,13 @@ def stateUpdate():
                         f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                         0)
 
-            TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
-            TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
+            # TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
+            # TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
 
-            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDevice"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eMultimedia.value))
-            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDeviceCommication"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eCommunications.value))
+            # TPClient.stateUpdate(TP_PLUGIN_STATES["inputDevice"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eMultimedia.value))
+            # TPClient.stateUpdate(TP_PLUGIN_STATES["inputDeviceCommication"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eCommunications.value))
             
             # g_log.info(str(getMasterVolume()))
-
         if counter >= 40: counter = 0; # clear ram because It could build really large number
 
 def handleSettings(settings, on_connect=False):
@@ -251,15 +251,18 @@ def onConnect(data):
         handleSettings(settings, True)
 
     running = True
+    run_callback()
+    #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
+    
+    Thread(target=stateUpdate).start()
 
+def run_callback():
     pythoncom.CoInitialize()
     try:
         MagicManager.magic_session(WinAudioCallBack)
     except Exception as e:
-        print(e)
-        #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
-    
-    Thread(target=stateUpdate).start()
+        g_log.info(e)
+
     
 
 # Settings handler
