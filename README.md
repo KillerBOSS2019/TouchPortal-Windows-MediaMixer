@@ -13,7 +13,7 @@ a TouchPortal plugin that allows you to control Window's default audio mixer.
 
 # Change Log
 ```
-v1.1.1 - CPU & RAM leak (5/31/2022)
+v1.1.1 - CPU & RAM leak (6/5/2022)
     Fixed:
         - CPU and RAM Leak
         "In order to fix this leak I had to remove show current default in/output device states.
