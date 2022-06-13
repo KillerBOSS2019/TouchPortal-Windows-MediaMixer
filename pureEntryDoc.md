@@ -7,6 +7,7 @@
   - [Settings Overview](#Settings-Overview)
   - [Features](#Features)
     - [Actions](#actions)
+    - [Slider](#Sliders)
     - [States](#states)
     - [Events](#events)
   - [Bugs and Support](#Bugs-and-Suggestion)
@@ -30,34 +31,43 @@ A list of processes to ignore when searching for audio processes. This is useful
 ## Actions
 <table>
 <tr valign='buttom'><th>Action Name</th><th>Description</th><th>Format</th><th nowrap>Data<br/><div align=left><sub>choices/default (in bold)</th><th>On<br/>Hold</sub></div></th></tr>
-<tr valign='top'><td>AppMute</td><td>No document available</td><td>[2] Program:[1]</td><td><ul start=0>
+<tr valign='top'><td>Volume Mixer: Mute/Unmute process volume</td><td>No document available</td><td>[2] Program:[1]</td><td><ol start=1>
 <li>[appChoice] Type: choice &nbsp; 
 &lt;empty&gt;</li>
 <li>[OptionList] Type: choice &nbsp; 
 <b>Toggle</b> ['Mute', 'Unmute', 'Toggle']</li>
-</ul></td>
+</ol></td>
 <td align=center>No</td>
-<tr valign='top'><td>Inc/DecrVol</td><td>No document available</td><td>[2][1]Volume to[3]</td><td><ul start=0>
+<tr valign='top'><td>Volume Mixer: Increase/Decrease process volume</td><td>No document available</td><td>[2][1]Volume to[3]</td><td><ol start=1>
 <li>[AppChoice] Type: choice &nbsp; 
 &lt;empty&gt;</li>
 <li>[OptionList] Type: choice &nbsp; 
 <b>Increase</b> ['Increase', 'Decrease', 'Set']</li>
 <li>[Volume] Type: number &nbsp; 
 <b>10</b> (0-100)</li>
-</ul></td>
+</ol></td>
 <td align=center>Yes</td>
-<tr valign='top'><td>ChangeOut/Input</td><td>No document available</td><td>Set Audio [1] [2] to [3]</td><td><ul start=0>
+<tr valign='top'><td>Volume Mixer: Change Default Audio Devices</td><td>No document available</td><td>Set Audio [1] [2] to [3]</td><td><ol start=1>
 <li>[optionSel] Type: choice &nbsp; 
 <b>Pick One</b> ['Output', 'Input']</li>
 <li>[deviceOption] Type: choice &nbsp; 
 &lt;empty&gt;</li>
 <li>[setType] Type: choice &nbsp; 
 <b>Default</b> ['Default', 'Communications']</li>
-</ul></td>
+</ol></td>
 <td align=center>No</td>
 </table>
 
-### States
+## Sliders
+<table>
+<tr valign='buttom'><th>Slider Name</th><th>Description</th><th>Format</th><th nowrap>Data<br/><div align=left><sub>choices/default (in bold)</th></tr>
+<tr valign='top'><td>Volume Mixer: APP Volume slider</td><td>No document available</td><td>Control volume for [1]</td><td><ol start=1>
+<li>[appchoice] Type: choice &nbsp; 
+&lt;empty&gt;</li>
+</ol></td>
+</table>
+
+## States
  <b>Base Id:</b> com.github.KillerBOSS2019.WinMediaMixer.
 
 | Id | Name | Description | DefaultValue |
@@ -66,7 +76,7 @@ A list of processes to ignore when searching for audio processes. This is useful
 
 
 
-### Events
+## Events
 
 <b>Base Id:</b> com.github.KillerBOSS2019.WinMediaMixer.
 
