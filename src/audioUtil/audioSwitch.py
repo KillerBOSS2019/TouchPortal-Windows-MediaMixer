@@ -7,6 +7,9 @@ from pycaw.pycaw import (DEVICE_STATE, AudioUtilities, EDataFlow,
 
 from . import policyconfig as pc
 from pycaw.constants import ERole
+import ctypes
+
+audioDll = ctypes.CDLL("src/AudioDLL.dll")
 
 class MyAudioUtilities(AudioUtilities):
     @staticmethod
@@ -16,7 +19,8 @@ class MyAudioUtilities(AudioUtilities):
             IMMDeviceEnumerator,
             comtypes.CLSCTX_INPROC_SERVER)
 
-        return device_enumerator.GetDefaultAudioEndpoint(devicetype, roletype)
+        default_device = device_enumerator.GetDefaultAudioEndpoint(devicetype, roletype)
+        return default_device
 
     @staticmethod
     def getAllDevices(direction, State = DEVICE_STATE.ACTIVE.value):
@@ -58,6 +62,8 @@ def switchOutput(deviceId, role):
     )
     print(deviceId, role)
     policy_config.SetDefaultEndpoint(deviceId, role)
+
+SetApplicationEndpoint = audioDll.SetApplicationEndpoint
 
 
 

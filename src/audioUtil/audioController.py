@@ -3,6 +3,7 @@ from ctypes import POINTER, cast
 import pythoncom
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+import psutil
 
 
 class AudioController(object):
@@ -91,9 +92,18 @@ def setMasterVolume(Vol):
 
 
 def getMasterVolume() -> int:
-    pythoncom.CoInitialize()
     devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(
-        IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    volume = cast(interface, POINTER(IAudioEndpointVolume))
-    return int(round(volume.GetMasterVolumeLevelScalar() * 100))
+    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+
+    # Get the volume range and current volume level
+    volume = interface.QueryInterface(IAudioEndpointVolume)
+    volume_percent = int(round(volume.GetMasterVolumeLevelScalar() * 100))
+
+    return volume_percent
+
+def get_process_id(name):
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        if session.Process and session.Process.name() == name:
+            return session.Process.pid
+    return None

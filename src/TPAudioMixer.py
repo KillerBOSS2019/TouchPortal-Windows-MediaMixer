@@ -18,7 +18,7 @@ from pycaw.pycaw import EDataFlow, ERole
 from audioUtil import audioSwitch
 
 from audioUtil.audioController import (getMasterVolume, muteAndUnMute,
-                                       setMasterVolume, volumeChanger, AudioController)
+                                       setMasterVolume, volumeChanger, AudioController, get_process_id)
 from tppEntry import *
 from tppEntry import __version__
 
@@ -54,6 +54,7 @@ def updateVolumeMixerChoicelist():
     TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["Inc/DecrVol"]['data']['AppChoice']['id'], volumeprocess[1:])
     TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["AppMute"]['data']['appChoice']['id'], volumeprocess[1:])
     TPClient.choiceUpdate(TP_PLUGIN_CONNECTORS["APP control"]["data"]["appchoice"]['id'], volumeprocess)
+    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["AppChoice"]["id"], volumeprocess[1:])
 
 def removeAudioState(app_name):
     global volumeprocess
@@ -169,9 +170,11 @@ class WinAudioCallBack(MagicSession):
             if not isDeleted:
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.muteState", "Muted" if muted else "Un-muted")
 
-def updateDevice(options):
+def updateDevice(options, choiceId):
     deviceList = [device.FriendlyName for device in audioSwitch.MyAudioUtilities.getAllDevices(options)]
-    TPClient.choiceUpdate(TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], deviceList)
+    if (choiceId == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"]):
+        deviceList.insert(0, "Default")
+    TPClient.choiceUpdate(choiceId, deviceList)
     g_log.debug(f'updating {options} {deviceList}')
 
 
@@ -225,13 +228,11 @@ def stateUpdate():
                         f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                         0)
 
-            # TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
-            # TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["outputcommicationDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eCommunications.value))
 
-            # TPClient.stateUpdate(TP_PLUGIN_STATES["inputDevice"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eMultimedia.value))
-            # TPClient.stateUpdate(TP_PLUGIN_STATES["inputDeviceCommication"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eCommunications.value))
-            
-            # g_log.info(str(getMasterVolume()))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDevice"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eMultimedia.value))
+            TPClient.stateUpdate(TP_PLUGIN_STATES["inputDeviceCommication"]["id"], getDevicebydata(EDataFlow.eCapture.value, ERole.eCommunications.value))
         if counter >= 40: counter = 0; # clear ram because It could build really large number
 
 def handleSettings(settings, on_connect=False):
@@ -301,6 +302,13 @@ def onAction(data):
         for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
             if device.FriendlyName == action_data[1]['value']:
                 audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
+                
+    elif actionid == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and action_data[2]["value"] != "Pick One":
+        for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[2]["value"]):
+            if (deviceId := '' if action_data[1]["value"] == "Default" == 'Default' else device.id if device.FriendlyName == action_data[1]["value"] else None) != None:
+                if (processid := get_process_id(action_data[0]['value'])) != None:
+                    g_log.info(f"args devId: {deviceId}, processId: {processid}")
+                    audioSwitch.SetApplicationEndpoint(deviceId, 1 if action_data[2]["value"] == "Input" else 0, processid)
 
     else:
         g_log.warning("Got unknown action ID: " + actionid)
@@ -338,7 +346,12 @@ def onListChange(data):
     g_log.debug(f"onlistChange: {data}")
     if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
-            updateDevice(data['value'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'])
+        except Exception as e:
+            g_log.warning("Update device input/output KeyError", exc_info=e)
+    if data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and data["listId"] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]:
+        try:
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"])
         except Exception as e:
             g_log.warning("Update device input/output KeyError", exc_info=e)
 
@@ -403,7 +416,7 @@ def main():
             g_log.addHandler(sh)
 
     g_log.info(f"Starting {TP_PLUGIN_INFO['name']} v{__version__} on {sys.platform}.")
-
+    ret = 1
     try:
         # Connect to Touch Portal desktop application.
         # If connection succeeds, this method will not return (blocks) until the client is disconnected.
@@ -428,4 +441,5 @@ def main():
     return ret
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
+    print("test")

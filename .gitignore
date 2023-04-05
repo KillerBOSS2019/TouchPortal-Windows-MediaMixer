@@ -5,3 +5,6 @@
 src/entry.tp
 *.tpp
 *.tpp
+.env
+.vscode
+*.txt

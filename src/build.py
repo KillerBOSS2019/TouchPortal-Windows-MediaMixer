@@ -1,61 +1,113 @@
-import os
+"""
+In order for buildScript to work, you need to have the following variables in your build file:
+
+    - PLUGIN_ROOT: (Required)
+        This lets the build script to know your plugin's root directory.
+
+    - OUTPUT_PATH: (Required)
+        This tells tppbuild where you want finished build tpp to be saved at. Default "./" meaning current dir where tppbuild is running from.
+
+
+    - PLUGIN_MAIN: (Required)
+        This lets tppbuild know where your main python plugin file is located so it will know which file to compile.
+
+    - PLUGIN_EXE_NAME: (Required)
+        This is the name of the executable file that is compiled by Pyinstaller.
+
+    - PLUGIN_EXE_ICON: (Optional)
+        This should be a path to a .ico file. However if png passed in, it will automatically converted to ico.
+        Otherwise, it will use pyinstaller's default icon.
+
+
+    - PLUGIN_ENTRY: (Required)
+        This can be either path to entry.tp or path to a python file that contains infomation about entry.
+        Note if you pass in a entry.tp, tppbuild will automatically validate the json. If you pass in a python file, it will
+        build entry.tp & validate it for you. If validation fails, tppbuild will exit.
+
+    - PLUGIN_ENTRY_INDENT: (Required)
+        Indent level (spaces) for generated JSON. Use 0 for only newlines, or -1 for the most compact representation. Default is 2 spaces.
+
+    - PLUGIN_VERSION: (Required)
+        A version string will be used as part of .tpp file.
+
+
+    - ADDITIONAL_FILES: (Optional)
+        If your plugin requires any additional files for your plugin to work, you can add them here.
+
+    - ADDITIONAL_PYINSTALLER_ARGS: (Optional)
+        If you have additional arguments for Pyinstaller, you can add them here. otherwise default it will use these arguments:
+        '--onefile', '--noconsole', '--distpath', 'dist', 'name', 'icon'
+
+Even if you don't use all of the above variables, you still need to have the following variables in your build file
 
 """
-                Versioning system (https://semver.org/)
 
-MAJOR version when you make incompatible API changes,
-MINOR version when you add functionality in a backwards compatible manner, and
-PATCH version when you make backwards compatible bug fixes.
-
-"This just a guide that helps you with your plugin version System. feel free to follow it or not."
-"""
-versionMajor = 1
-versionMinor = 1
-versionPatch = 1
+from TouchPortalAPI import tppbuild
 
 """
-This will convert version from above into TP version eg
-if Major 1, Minor 0, and Patch 0 output would be 10000 and if you change Minor to 1 it would be 1100 etc..
+PLUGIN_MAIN: This lets tppbuild know where your main python plugin file is located so it will know which file to compile.
 """
-__version__ = versionMajor * 10000 + versionMinor * 100 + versionPatch
+PLUGIN_MAIN = "TPAudioMixer.py"
 
 """
-PLUGIN_MAIN: This let tppbuild to know where is your main python located so then It will know which file to compile
-PLUGIN_EXE_NAME: This tells what you want your plugin to be named. as a note tppbuild will use this format `pluginname + "_v" + version + "_" + os_name + ".tpp"`
-                 IF this is empty It will use main py name
-PLUGIN_EXE_ICON: This should be a path to a .ico file that's used for the compiled exe icon (IF Leaved empty It will use default pyinstaller icon)
+PLUGIN_EXE_NAME: This defines what you want your plugin executable to be named. tppbuild will also use this for the .tpp file in the format:
+                `pluginname + "_v" + version + "_" + os_name + ".tpp"`
+                If left blank, the file name from PLUGIN_MAIN is used (w/out .py extension).
 """
-PLUGIN_MAIN = r"TPAudioMixer.py"
 PLUGIN_EXE_NAME = "TPAudioMixer"
-PLUGIN_EXE_ICON = r"icon.ico"
+
+"""
+PLUGIN_EXE_ICON: This should be a path to a .ico file. However if png passed in, it will automatically converted to ico.
+"""
+PLUGIN_EXE_ICON = "icon.ico"
 
 
 """
 PLUGIN_ENTRY: This can be either path to entry.tp or path to a python file that contains infomation about entry.
-Note if you pass in a entry.tp tppbuild will automatically validate the json. but if you pass in python file it will
-build entry.tp & validate it for you.
+Note if you pass in a entry.tp, tppbuild will automatically validate the json. If you pass in a python file, it will
+build entry.tp & validate it for you. If validation fails, tppbuild will exit.
 """
-PLUGIN_ENTRY = r"tppEntry.py"
-PLUGIN_ROOT = "TouchPortalMediaMixer" # This is the root folder name that's inside of .tpp
-PLUGIN_ICON = r"icon-24.png" # This should be a path that goes to a icon that's for entry.tp
-OUTPUT_PATH = r"./output" # This tells tppbuild where you want finished build tpp to be saved at. Default ./ meaning current dir build script
-
+PLUGIN_ENTRY = "tppEntry.py"  # Here we just use the same file as the plugin's main code since that contains all the definitions for entry.tp.
 
 """
-If you have any required file that your plugin needs put it in here. In a list
-"""
-FileRequired = []
-
 
 """
-This is args thats used by Pyinstaller. NOT RECOMMENDED TO MODIFY THIS. unless you know what your doing.
+PLUGIN_ENTRY_INDENT = -1
+
+""" This is the root folder name that will be inside of .tpp """
+PLUGIN_ROOT = "TouchPortalMediaMixer"
+
+""" Path to icon file used in entry.tp for category `imagepath`, if any. If left blank, TP will use a default icon. """
+PLUGIN_ICON = r"icon-24.png"
+
+""" This tells tppbuild where you want finished build tpp to be saved at. Default "./" meaning current dir where tppbuild is running from. """
+OUTPUT_PATH = r"./"
+
+""" PLUGIN_VERSION: A version string for the generated .tpp file name. This example reads the `__version__` from the example plugin's code. """
+from tppEntry import __version__
+PLUGIN_VERSION = __version__
+
+# Or just set the PLUGIN_VERSION manually.
+# PLUGIN_VERSION = "1.0.0-beta1"
+
 """
-Pyinstaller_arg = [
-    f'{PLUGIN_MAIN}',
-    f'--name={PLUGIN_EXE_NAME if PLUGIN_EXE_NAME != "" else os.path.basename(PLUGIN_MAIN)[:os.path.basename(PLUGIN_MAIN).find(".py")]}',
-    '--onefile',
-    f'--distpath=./',
-    "--clean"
+If you have any required file(s) that your plugin needs, put them in this list.
+"""
+ADDITIONAL_FILES = [
+    "start.bat",
+    "AudioDLL.dll"
 ]
-if PLUGIN_EXE_ICON and os.path.isfile(PLUGIN_EXE_ICON): # This just checks if it can find the exe icon. if not It won't use it. Please double check the path
-    Pyinstaller_arg.append(f"--icon={PLUGIN_EXE_ICON}")
+
+"""
+Any additional arguments to be passed to Pyinstaller. Optional.
+"""
+ADDITIONAL_PYINSTALLER_ARGS = [
+    "--log-level=WARN"
+]
+
+ADDITIONAL_TPPSDK_ARGS = []
+ADDITINAL_TPPSDK_ARGS  = ADDITIONAL_TPPSDK_ARGS
+
+if __name__ == "__main__":
+    tppbuild.validateBuild()
+    tppbuild.runBuild()

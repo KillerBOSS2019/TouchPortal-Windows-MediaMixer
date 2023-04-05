@@ -34,8 +34,6 @@ IID_AudioSes = (
     '{00000000-0000-0000-0000-000000000000}'
 )
 
-ConfigFactory = GUID("2a59116d-6c4f-45e0-a74f-707e3fef9258")
-
 
 REFERENCE_TIME = ctypes.c_longlong
 
