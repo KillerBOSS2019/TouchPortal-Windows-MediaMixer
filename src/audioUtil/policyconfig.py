@@ -4,23 +4,14 @@
 
 # This whole code is taken from https://github.com/kdschlosser/pyWinCoreAudio
 
-import comtypes, enum
-from comtypes import COMMETHOD, GUID
 import ctypes
-from ctypes import (
-    POINTER,
-    HRESULT,
-     c_int as enum
-)
+import enum
+from ctypes import HRESULT, POINTER
+from ctypes import c_int as enum
+from ctypes.wintypes import BOOL, INT, LPCWSTR, WORD
 
-
-
-from ctypes.wintypes import (
-    INT,
-    BOOL,
-    LPCWSTR,
-    WORD
-)
+import comtypes
+from comtypes import COMMETHOD, GUID
 
 IID_IPolicyConfig = GUID(
     '{f8679f50-850a-41cf-9c72-430f290290c8}'

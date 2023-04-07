@@ -1,9 +1,9 @@
 from ctypes import POINTER, cast
 
+import comtypes
 import pythoncom
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-import psutil
 
 
 class AudioController(object):
@@ -90,7 +90,6 @@ def setMasterVolume(Vol):
     scalarVolume = int(Vol) / 100
     volume.SetMasterVolumeLevelScalar(scalarVolume, None)
 
-
 def getMasterVolume() -> int:
     devices = AudioUtilities.GetSpeakers()
     interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
@@ -99,6 +98,9 @@ def getMasterVolume() -> int:
     volume = interface.QueryInterface(IAudioEndpointVolume)
     volume_percent = int(round(volume.GetMasterVolumeLevelScalar() * 100))
 
+    devices.Release()
+    # Release the interface COM object
+    comtypes.CoUninitialize()
     return volume_percent
 
 def get_process_id(name):

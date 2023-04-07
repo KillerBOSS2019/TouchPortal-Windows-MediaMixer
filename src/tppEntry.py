@@ -1,4 +1,4 @@
-__version__ = 112
+__version__ = 120
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 

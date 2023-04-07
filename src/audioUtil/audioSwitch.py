@@ -1,15 +1,15 @@
 from __future__ import print_function
 
+import ctypes
+
 import comtypes
 from pycaw.constants import CLSID_MMDeviceEnumerator
 from pycaw.pycaw import (DEVICE_STATE, AudioUtilities, EDataFlow,
                          IMMDeviceEnumerator)
 
 from . import policyconfig as pc
-from pycaw.constants import ERole
-import ctypes
 
-audioDll = ctypes.CDLL("src/AudioDLL.dll")
+audioDll = ctypes.CDLL("AudioDLL.dll")
 
 class MyAudioUtilities(AudioUtilities):
     @staticmethod
@@ -24,14 +24,14 @@ class MyAudioUtilities(AudioUtilities):
 
     @staticmethod
     def getAllDevices(direction, State = DEVICE_STATE.ACTIVE.value):
-        devices = []
+        devices = {}
         # for all use EDataFlow.eAll.value
         if direction == "Input":
             Flow = EDataFlow.eCapture.value     # 1
         else:
             # Output
             Flow = EDataFlow.eRender.value      # 0
-        
+        comtypes.CoInitialize()
         deviceEnumerator = comtypes.CoCreateInstance(
             CLSID_MMDeviceEnumerator,
             IMMDeviceEnumerator,
@@ -48,8 +48,14 @@ class MyAudioUtilities(AudioUtilities):
         for i in range(count):
             dev = collection.Item(i)
             if dev is not None:
-                if not ": None" in str(AudioUtilities.CreateDevice(dev)):
-                    devices.append(AudioUtilities.CreateDevice(dev))
+                createDev = AudioUtilities.CreateDevice(dev)
+                if not ": None" in str(createDev):
+                    devices[createDev.FriendlyName] = createDev.id
+                createDev._dev.Release()
+        
+        # deviceEnumerator.Release()
+        del deviceEnumerator
+        comtypes.CoUninitialize()
         return devices
 
 
@@ -60,8 +66,8 @@ def switchOutput(deviceId, role):
         pc.IPolicyConfig,
         comtypes.CLSCTX_ALL
     )
-    print(deviceId, role)
     policy_config.SetDefaultEndpoint(deviceId, role)
+    policy_config.Release()
 
 SetApplicationEndpoint = audioDll.SetApplicationEndpoint
 
