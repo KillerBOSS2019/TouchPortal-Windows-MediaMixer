@@ -8,3 +8,4 @@ src/entry.tp
 .env
 .vscode
 *.txt
+MediaMixerVenv
