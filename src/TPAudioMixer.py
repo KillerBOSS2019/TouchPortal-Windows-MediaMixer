@@ -326,12 +326,15 @@ def onAction(data):
             else:
                 muteAndUnMute(action_data[0]['value'], action_data[1]['value'])
     elif actionid == TP_PLUGIN_ACTIONS['Inc/DecrVol']['id']:
+        volume_value = int(action_data[2]['value'])
+        volume_value = max(0, min(volume_value, 100))
+
         if action_data[0]['value'] == "Current app":
             activeWindow = getActiveExecutablePath()
             if activeWindow != "":
-                volumeChanger(os.path.basename(activeWindow), action_data[1]['value'], action_data[2]['value'])
+                volumeChanger(os.path.basename(activeWindow), action_data[1]['value'], volume_value)
         else:
-            volumeChanger(action_data[0]['value'], action_data[1]['value'], action_data[2]['value'])
+            volumeChanger(action_data[0]['value'], action_data[1]['value'], volume_value)
     elif actionid == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["id"] and action_data[0]['value'] != "Pick One": 
         deviceId = audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value'])
         deviceId = deviceId.get(action_data[1]['value'])
@@ -366,7 +369,9 @@ def heldingButton(data):
     g_log.debug(f"heldingButton: {data}")
     while True:
         if TPClient.isActionBeingHeld(TP_PLUGIN_ACTIONS['Inc/DecrVol']['id']):
-            volumeChanger(data['data'][0]['value'], data['data'][1]['value'], data['data'][2]['value'])
+            volume_value = int(data['data'][2]['value'])
+            volume_value = max(0, min(volume_value, 100))
+            volumeChanger(data['data'][0]['value'], data['data'][1]['value'], volume_value)
             sleep(0.05)
         else:
             break

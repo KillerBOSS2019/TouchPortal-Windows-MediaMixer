@@ -127,12 +127,9 @@ TP_PLUGIN_ACTIONS = {
             },
             'Volume': {
                 'id': PLUGIN_ID + ".act.Inc/DecrVol.data.Volume",
-                'type': "number",
+                'type': "text",
                 'label': "Volume",
-                "allowDecimals": False,
-                "minValue": 0,
-                "maxValue": 100,
-                "default": 10
+                "default": "10"
             },
         }
     },
