@@ -172,12 +172,15 @@ class WinAudioCallBack(MagicSession):
             if not isDeleted:
                 TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.muteState", "Muted" if muted else "Un-muted")
 
-def updateDevice(options, choiceId):
+def updateDevice(options, choiceId, instanceId=None):
     deviceList = list(audioSwitch.MyAudioUtilities.getAllDevices(options).keys())
     g_log.info(deviceList)
     if (choiceId == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"]):
         deviceList.insert(0, "Default")
-    TPClient.choiceUpdate(choiceId, deviceList)
+    if instanceId:
+        TPClient.choiceUpdateSpecific(choiceId, deviceList, instanceId)
+    else:
+        TPClient.choiceUpdate(choiceId, deviceList)
     g_log.debug(f'updating {options} {deviceList}')
 
 
@@ -403,12 +406,12 @@ def onListChange(data):
     g_log.debug(f"onlistChange: {data}")
     if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
-            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], data['instanceId'])
         except Exception as e:
             g_log.warning("Update device input/output KeyError", exc_info=e)
     if data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and data["listId"] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]:
         try:
-            updateDevice(data['value'], TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"], data['instanceId'])
         except Exception as e:
             g_log.warning("Update device input/output KeyError", exc_info=e)
 
