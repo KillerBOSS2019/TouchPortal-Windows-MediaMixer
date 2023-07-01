@@ -1,4 +1,4 @@
-__version__ = 120
+__version__ = 130
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 
@@ -262,4 +262,11 @@ TP_PLUGIN_STATES = {
         'desc': "Volume Mixer: current focused app",
         'default': ""
     },
+    'master volume': {
+        'category': "main",
+        'id': PLUGIN_ID + ".state.currentMasterVolume",
+        'type': "text",
+        'desc': "Volume Mixer: Get Current Master volume",
+        'default': "0"
+    }
 }

@@ -240,9 +240,13 @@ def stateUpdate():
         sleep(0.5)
         TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
 
+        master_volume = getMasterVolume()
+
         TPClient.connectorUpdate(
                 f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
-                getMasterVolume())
+                master_volume)
+        
+        TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
 
         activeWindow = getActiveExecutablePath()
         if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):

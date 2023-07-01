@@ -52,9 +52,7 @@ class MyAudioUtilities(AudioUtilities):
                 if not ": None" in str(createDev):
                     devices[createDev.FriendlyName] = createDev.id
                 createDev._dev.Release()
-        
-        # deviceEnumerator.Release()
-        del deviceEnumerator
+                
         comtypes.CoUninitialize()
         return devices
 
