@@ -256,10 +256,12 @@ def stateUpdate():
             TPClient.connectorUpdate(
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                     int(current_app_volume*100.0))
+            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
         else:
             TPClient.connectorUpdate(
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                     0)
+            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], 0)
 
         if (updateSwitch == 1):
             TPClient.stateUpdate(TP_PLUGIN_STATES["outputDevice"]["id"], getDevicebydata(EDataFlow.eRender.value, ERole.eMultimedia.value))
