@@ -13,6 +13,33 @@ a TouchPortal plugin that allows you to control Window's default audio mixer.
 
 # Change Log
 ```
+v1.4.0 - get current focused app volume
+    New:
+        - Added get current focused app volume
+
+
+v1.3.1 - Bug fixes on behavior on audio source changing action
+    Bug Fixes:
+        - Fixed where if you have 2 same action in button editing when u select either Output/Input it'll reset the previous action.
+
+
+v1.3.0 - Allow string state use as volume and get current master volume as state
+    New:
+        - Added ability to get current master volume as a state.
+
+    Bug Fixes:
+        - Fixed that you cannot insert a state to be used as volume in actions
+
+
+v1.2.0 - Individual app audio routing & added device stateback.
+    New:
+        - Individual app routing meaning you can send app's audio source to any audio devices you wish.
+        - Added Ability to show current input/output Default and Communcation device state back.
+        - Updated the python sdk to V1.7.9
+    Bug Fixes:
+        - Memory Leak is fixed.
+
+
 v1.1.1 - CPU & RAM leak (6/5/2022)
     Fixed:
         - CPU and RAM Leak
@@ -58,6 +85,8 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
     - It allows you to Increase/Decrease/Set any application Volume
 - Volume Mixer: Change Default Audio Devices
     - This allows you to change your Commucation or Default device for both Input or output
+- Individual App Audio Device switcher
+    - allows you to change app's volume source to a different audio device.
 
 ## State
 ![State list](images/states.png)
@@ -80,11 +109,17 @@ This plugin will create for each application
     - This shows your default input commucation device
 - Volume Mixer: current focused app
     - This gives you current focused app
+- Volume Mixer: Get Current Master Volume
+    - shows current master volume via states ranging 0-100
+- Volume Mixer: focused app volume
+    - shows current focused app volume as a state.
 
 ### Slider
 
 This plugin also includes slider functionality. to use this feature simply change button type to `Slider` then you will have
 - Volume Mixer: APP Volume slider
+    - when button type is slider, you have ability to change selected app volume
+     using slider also includes Current app (controls volume on whatever is on focus) and control master volume too! 
 
 # Versioning
 
