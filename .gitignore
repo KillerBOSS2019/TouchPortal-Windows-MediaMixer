@@ -9,3 +9,5 @@ src/entry.tp
 .vscode
 *.txt
 MediaMixerVenv
+*.toc
+*.zip

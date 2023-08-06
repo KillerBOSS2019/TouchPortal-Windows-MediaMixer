@@ -20,7 +20,8 @@ from pycaw.pycaw import EDataFlow, ERole
 from audioUtil import audioSwitch
 from audioUtil.audioController import (AudioController, get_process_id,
                                        getMasterVolume, muteAndUnMute,
-                                       setMasterVolume, volumeChanger)
+                                       setMasterVolume, volumeChanger,
+                                       setDeviceVolume)
 from tppEntry import *
 from tppEntry import __version__
 
@@ -175,7 +176,10 @@ class WinAudioCallBack(MagicSession):
 def updateDevice(options, choiceId, instanceId=None):
     deviceList = list(audioSwitch.MyAudioUtilities.getAllDevices(options).keys())
     g_log.info(deviceList)
-    if (choiceId == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"]):
+    if (choiceId == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"] or \
+            choiceId == TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceOption"]["id"]) or \
+            choiceId == TP_PLUGIN_CONNECTORS["Windows Audio"]["data"]["deviceOption"]["id"]:
+
         deviceList.insert(0, "Default")
     if instanceId:
         TPClient.choiceUpdateSpecific(choiceId, deviceList, instanceId)
@@ -191,7 +195,6 @@ def getActiveExecutablePath():
     else:
         _, pid = win32process.GetWindowThreadProcessId(hWnd)
         return psutil.Process(pid).exe()
-import gc
 
 import comtypes
 
@@ -363,6 +366,20 @@ def onAction(data):
             g_log.info(f"args devId: {deviceId}, processId: {processid}")
             if (deviceId == "" and action_data[1]["value"] == "Default") or deviceId:
                 audioSwitch.SetApplicationEndpoint(deviceId, 1 if action_data[2]["value"] == "Input" else 0, processid)
+
+    elif actionid == TP_PLUGIN_ACTIONS["setDeviceVolume"]["id"] and action_data[0]["value"] != "Pick One":
+        device = "default"
+        if action_data[1]['value'].lower() != "default":
+            devices = audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]["value"])
+            device = devices.get(action_data[1]['value'], "")
+
+        if device:
+            try:
+                volume = int(action_data[2]['value'])
+            except ValueError:
+                return
+            
+            setDeviceVolume(device, action_data[0]["value"], volume)
         # for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[2]["value"]):
         #     if (deviceId := '' if action_data[1]["value"] == "Default" == 'Default' else device.id if device.FriendlyName == action_data[1]["value"] else None) != None:
                 # if (processid := get_process_id(action_data[0]['value'])) != None:
@@ -388,7 +405,7 @@ def heldingButton(data):
 
 @TPClient.on(TP.TYPES.onConnectorChange)
 def connectors(data):
-    g_log.debug(f"connector Change: {data}")
+    g_log.info(f"connector Change: {data}")
     if data['connectorId'] == TP_PLUGIN_CONNECTORS["APP control"]['id']:
         if data['data'][0]['value'] == "Master Volume":
             setMasterVolume(data['value'])
@@ -401,21 +418,47 @@ def connectors(data):
             try:
                 volumeChanger(data['data'][0]['value'], "Set", data['value'])
             except Exception as e:
-                g_log.debug(f"Exception in other app volume change Error: ", exc_info=e)
+                g_log.debug(f"Exception in other app volume change Error: " + e)
+    
+    elif data["connectorId"] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"]:
+        device = "default"
+        if data['data'][0]['value'].lower() != "default":
+            devices = audioSwitch.MyAudioUtilities.getAllDevices(data['data'][0]['value'])
+            device = devices.get(data['data'][1]['value'], "")
+
+        if device:
+            print(data)
+            setDeviceVolume(device, data['data'][0]['value'], data['value'])
 
 @TPClient.on(TP.TYPES.onListChange)
 def onListChange(data):
-    g_log.debug(f"onlistChange: {data}")
-    if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
+    g_log.info(f"onlistChange: {data}")
+    if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and \
+        data['listId'] == (listId := TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]):
         try:
             updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], data['instanceId'])
         except Exception as e:
-            g_log.warning("Update device input/output KeyError", exc_info=e)
-    if data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and data["listId"] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]:
+            g_log.warning("Update device input/output KeyError: " + e)
+    elif data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and \
+        data["listId"] == (listId := TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]):
         try:
-            updateDevice(data['value'], TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"], data['instanceId'])
+            updateDevice(data['value'], listId, data['instanceId'])
         except Exception as e:
-            g_log.warning("Update device input/output KeyError", exc_info=e)
+            g_log.warning("Update device input/output KeyError: " + e)
+
+    elif data['actionId'] == TP_PLUGIN_ACTIONS["setDeviceVolume"]["id"] and \
+        data["listId"] == (listId := TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceType"]["id"]):
+        try:
+            updateDevice(data['value'], listId, data['instanceId'])
+        except Exception as e:
+            g_log.warning("Update device setDeviceVolume error " + e)
+    
+    elif data['actionId'] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"] and \
+        data["listId"] == (listId := TP_PLUGIN_CONNECTORS["Windows Audio"]["data"]["deviceType"]["id"]):
+        try:
+            updateDevice(data['value'], listId, data['instanceId'])
+        except Exception as e:
+            g_log.warning("Update device setDeviceVolume error " + e)
 
 # Shutdown handler
 @TPClient.on(TP.TYPES.onShutdown)
@@ -423,9 +466,9 @@ def onShutdown(data):
     g_log.info('Received shutdown event from TP Client.')
 
 # Error handler
-@TPClient.on(TP.TYPES.onError)
-def onError(exc):
-    g_log.error(f'Error in TP Client event handler: {repr(exc)}')
+# @TPClient.on(TP.TYPES.onError)
+# def onError(exc):
+#     g_log.error(f'Error in TP Client event handler: {repr(exc)}')
 
 def main():
     global TPClient, g_log

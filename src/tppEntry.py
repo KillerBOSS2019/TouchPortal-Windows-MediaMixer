@@ -1,4 +1,4 @@
-__version__ = 140
+__version__ = 150
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 
@@ -53,7 +53,33 @@ TP_PLUGIN_CONNECTORS = {
                 "valueChoices": []
             }
         }
-    }
+    },
+    ## Disabled because it was too much for plugin to handle
+    # "Windows Audio": {
+    #     "id": PLUGIN_ID + ".connector.WinAudio",
+    #     "name": "Volume Mixer: Windows Volume slider",
+    #     "format": "Control Windows Audio$[1] device$[2]",
+    #     "label": "control windows Volume",
+    #     "data": {
+    #         'deviceType': {
+    #             'id': PLUGIN_ID + ".connector.WinAudio.deviceType",
+    #             'type': "choice",
+    #             'label': "device type",
+    #             'default': "Pick One",
+    #             "valueChoices": [
+    #                 "Output",
+    #                 "Input"
+    #             ]
+    #         },
+    #         'deviceOption': {
+    #             'id': PLUGIN_ID + ".connector.WinAudio.devices",
+    #             'type': "choice",
+    #             'label': "Device choice list",
+    #             'default': "",
+    #             "valueChoices": []
+    #         },
+    #     }
+    # }
 }
 
 TP_PLUGIN_ACTIONS = {
@@ -180,6 +206,45 @@ TP_PLUGIN_ACTIONS = {
             },
         }
     },
+    'setDeviceVolume': {
+        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
+        'category': "main",
+        'id': PLUGIN_ID + ".act.changeDeviceVolume",
+        'name': 'Change Device Volume',
+        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
+        'type': "communicate",
+        'tryInline': True,
+        # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
+        # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
+        # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
+        'format': "Set Volume$[1]device$[2]to$[3]%",
+        "doc": "Change Default Audio Devices",
+        'data': {
+            'deviceType': {
+                'id': PLUGIN_ID + ".act.changeDeviceVolume.deviceType",
+                'type': "choice",
+                'label': "device type",
+                'default': "Pick One",
+                "valueChoices": [
+                    "Output",
+                    "Input"
+                ]
+            },
+            'deviceOption': {
+                'id': PLUGIN_ID + ".act.changeDeviceVolume.devices",
+                'type': "choice",
+                'label': "Device choice list",
+                'default': "",
+                "valueChoices": []
+            },
+            'Volume': {
+                'id': PLUGIN_ID + ".act.changeDeviceVolume.Volume",
+                'type': "text",
+                'label': "Volume",
+                "default": "10"
+            },
+        }
+    },
     'AppAudioSwitch': {
         # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
         'category': "main",
@@ -215,7 +280,7 @@ TP_PLUGIN_ACTIONS = {
                     "Output",
                     "Input"
                 ]
-            },
+            }
         }
     }
 }
@@ -264,7 +329,7 @@ TP_PLUGIN_STATES = {
     },
     'currentAppVolume': {
         'category': "main",
-        'id': "text",
+        'id': PLUGIN_ID + ".state.currentAppVolume",
         "desc": "Volume Mixer: focused app volume",
         "default": ""
     },

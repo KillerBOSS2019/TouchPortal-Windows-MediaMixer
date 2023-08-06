@@ -26,7 +26,7 @@ class MyAudioUtilities(AudioUtilities):
     def getAllDevices(direction, State = DEVICE_STATE.ACTIVE.value):
         devices = {}
         # for all use EDataFlow.eAll.value
-        if direction == "Input":
+        if direction.lower() == "input":
             Flow = EDataFlow.eCapture.value     # 1
         else:
             # Output
