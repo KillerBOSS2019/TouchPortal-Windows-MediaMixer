@@ -1,4 +1,4 @@
-__version__ = 150
+__version__ = 151
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 
@@ -210,7 +210,7 @@ TP_PLUGIN_ACTIONS = {
         # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
         'category': "main",
         'id': PLUGIN_ID + ".act.changeDeviceVolume",
-        'name': 'Change Device Volume',
+        'name': 'Set Device Volume',
         'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
         'type': "communicate",
         'tryInline': True,

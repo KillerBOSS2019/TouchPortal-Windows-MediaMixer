@@ -175,10 +175,8 @@ class WinAudioCallBack(MagicSession):
 
 def updateDevice(options, choiceId, instanceId=None):
     deviceList = list(audioSwitch.MyAudioUtilities.getAllDevices(options).keys())
-    g_log.info(deviceList)
     if (choiceId == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"] or \
-            choiceId == TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceOption"]["id"]) or \
-            choiceId == TP_PLUGIN_CONNECTORS["Windows Audio"]["data"]["deviceOption"]["id"]:
+            choiceId == TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceOption"]["id"]):
 
         deviceList.insert(0, "Default")
     if instanceId:
@@ -308,7 +306,7 @@ def run_callback():
     try:
         MagicManager.magic_session(WinAudioCallBack)
     except Exception as e:
-        g_log.info(e)
+        g_log.info(e, exc_info=True)
 
     
 
@@ -418,7 +416,7 @@ def connectors(data):
             try:
                 volumeChanger(data['data'][0]['value'], "Set", data['value'])
             except Exception as e:
-                g_log.debug(f"Exception in other app volume change Error: " + e)
+                g_log.debug(f"Exception in other app volume change Error: " + str(e))
     
     elif data["connectorId"] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"]:
         device = "default"
@@ -434,31 +432,31 @@ def connectors(data):
 def onListChange(data):
     g_log.info(f"onlistChange: {data}")
     if data['actionId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]['id'] and \
-        data['listId'] == (listId := TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]):
+        data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
             updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], data['instanceId'])
         except Exception as e:
-            g_log.warning("Update device input/output KeyError: " + e)
+            g_log.info("Update device input/output KeyError: " + str(e))
     elif data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and \
-        data["listId"] == (listId := TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]):
+        data["listId"] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["deviceType"]["id"]:
         try:
-            updateDevice(data['value'], listId, data['instanceId'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["AppAudioSwitch"]["data"]["devicelist"]["id"], data['instanceId'])
         except Exception as e:
-            g_log.warning("Update device input/output KeyError: " + e)
-
-    elif data['actionId'] == TP_PLUGIN_ACTIONS["setDeviceVolume"]["id"] and \
-        data["listId"] == (listId := TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceType"]["id"]):
-        try:
-            updateDevice(data['value'], listId, data['instanceId'])
-        except Exception as e:
-            g_log.warning("Update device setDeviceVolume error " + e)
+            g_log.info("Update device input/output KeyError: " + str(e))
     
-    elif data['actionId'] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"] and \
-        data["listId"] == (listId := TP_PLUGIN_CONNECTORS["Windows Audio"]["data"]["deviceType"]["id"]):
+    elif data['actionId'] == TP_PLUGIN_ACTIONS["setDeviceVolume"]["id"] and \
+        data["listId"] == TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceType"]["id"]:
         try:
-            updateDevice(data['value'], listId, data['instanceId'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["setDeviceVolume"]["data"]["deviceOption"]["id"], data['instanceId'])
         except Exception as e:
-            g_log.warning("Update device setDeviceVolume error " + e)
+            g_log.info("Update device setDeviceVolume error " + str(e))
+    
+    # elif data['actionId'] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"] and \
+    #     data["listId"] == (listId := TP_PLUGIN_CONNECTORS["Windows Audio"]["data"]["deviceType"]["id"]):
+    #     try:
+    #         updateDevice(data['value'], listId, data['instanceId'])
+    #     except Exception as e:
+    #         g_log.warning("Update device setDeviceVolume error " + str(e))
 
 # Shutdown handler
 @TPClient.on(TP.TYPES.onShutdown)

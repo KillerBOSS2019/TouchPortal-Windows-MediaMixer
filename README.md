@@ -13,6 +13,16 @@ a TouchPortal plugin that allows you to control Window's default audio mixer.
 
 # Change Log
 ```
+v1.5.1 - Fixed listId not updating correctly
+    Bug Fixes:
+        - Fixed listId not updating correctly
+        - Changed from "Change device volume" to "Set device volume" to make it more clear.
+
+v1.5.0 - Fixed id and added ability to change audio volume
+    new:
+        - Added a new action allows user to change their mic or speaker volume
+        - Fixed current app volume id is "text" changed to proper id format
+
 v1.4.0 - get current focused app volume
     New:
         - Added get current focused app volume
@@ -81,10 +91,12 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
 
 - Volume Mixer: Mute/Unmute process volume
     - This allows you to Toggle/Mute/Unmute any program you pick.
-- Volume Mixer: Increase/Decrease process volume
+- Adjust App Volume
     - It allows you to Increase/Decrease/Set any application Volume
-- Volume Mixer: Change Default Audio Devices
-    - This allows you to change your Commucation or Default device for both Input or output
+- Audio Output/Input Device Switcher
+    - This allows you to change global default or commucations audio device.
+- Set Device Volume
+    - This allows you to set Micrphone or Speaker volume.
 - Individual App Audio Device switcher
     - allows you to change app's volume source to a different audio device.
 
