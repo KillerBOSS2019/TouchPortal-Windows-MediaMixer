@@ -243,21 +243,34 @@ def stateUpdate():
     while running:
         sleep(0.5)
         TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
+        state_list = TPClient.getStatelist()
 
         master_volume = getMasterVolume()
 
-        TPClient.connectorUpdate(
-                f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
-                master_volume)
-        
-        TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
+        if PLUGIN_ID + '.state.currentMasterVolume' in (state_list):
+             if (state_list[PLUGIN_ID + '.state.currentMasterVolume'] != str(master_volume)):
+                TPClient.connectorUpdate(
+                        f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
+                        master_volume)
+                TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
+        else:
+            TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
 
+
+        ## make this only update if it has changed...
         activeWindow = getActiveExecutablePath()
-        if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-            TPClient.connectorUpdate(
+
+        if PLUGIN_ID + '.state.currentAppVolume' in state_list and activeWindow != "" and activeWindow is not None:
+            current_app_volume = AudioController(os.path.basename(activeWindow)).process_volume()
+            new_volume_percentage = int(current_app_volume * 100.0) if current_app_volume is not None else 0
+
+            if state_list.get(PLUGIN_ID + '.state.currentAppVolume') != str(new_volume_percentage):
+             #   print(current_app_volume)
+                TPClient.connectorUpdate(
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                    int(current_app_volume*100.0))
-            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
+                    new_volume_percentage
+                )
+                TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(new_volume_percentage))   
         else:
             TPClient.connectorUpdate(
                     f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
