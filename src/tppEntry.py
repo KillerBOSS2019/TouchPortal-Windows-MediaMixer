@@ -33,8 +33,8 @@ TP_PLUGIN_SETTINGS = {
 TP_PLUGIN_CATEGORIES = {
     "main": {
         'id': PLUGIN_ID + ".main",
-        'name' : "Author: KillerBOSS",
-        'imagepath' : "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\icon-24.png"
+        'name' : "Windows Media Mixer",
+        'imagepath' : "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\icon.png"
     }
 }
 
