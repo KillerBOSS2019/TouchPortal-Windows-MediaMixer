@@ -94,7 +94,9 @@ Have you ever wondering if theres a way to easily control Windows Volume Mixer w
 - Adjust App Volume
     - It allows you to Increase/Decrease/Set any application Volume
 - Audio Output/Input Device Switcher
-    - This allows you to change global default or commucations audio device.
+    - This allows you to change global default or communication audio device.
+- Audio Output/Input Device Toggle
+    - This allows you to toggle the default global audio or communication device between two choices.
 - Set Device Volume
     - This allows you to set Micrphone or Speaker volume.
 - Individual App Audio Device switcher
@@ -113,12 +115,12 @@ This plugin will create for each application
     - This shows this application's volume
 - Audio Device: Get default Output devices
     - This shows your current Default output device
-- Audio Device: Get default Output commication devices
-    - This shows your Default output commication device
+- Audio Device: Get default Output communication devices
+    - This shows your Default output communication device
 - Audio Device: Get default input device
     - This shows your default input device
-- Audio Device: Get default input commucation device
-    - This shows your default input commucation device
+- Audio Device: Get default input communication device
+    - This shows your default input communication device
 - Volume Mixer: current focused app
     - This gives you current focused app
 - Volume Mixer: Get Current Master Volume
