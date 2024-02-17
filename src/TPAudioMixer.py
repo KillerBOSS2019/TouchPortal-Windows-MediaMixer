@@ -152,18 +152,24 @@ class WinAudioCallBack(MagicSession):
         when volume is changed externally - Updating Sliders and Volume States
         (see callback -> AudioSessionEvents -> OnSimpleVolumeChanged )
         """
+        short_id_list = TPClient.shortIdTracker
+
         if self.app_name not in audio_ignore_list:
             TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.volume", str(round(new_volume*100)))
             #print(f"{self.app_name} NEW VOLUME", str(round(new_volume*100)))
-            TPClient.connectorUpdate(
-                f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}",
-                round(new_volume*100))
-            
+            app_connector_id =f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}"
+
+            if app_connector_id in short_id_list :
+                TPClient.shortIdUpdate(
+                    short_id_list[app_connector_id],
+                    round(new_volume*100))
             """Checking for Current App If Its Active, Adjust it also"""
             if (activeWindow := getActiveExecutablePath()) != "":
-                TPClient.connectorUpdate(
-                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                    int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
+                current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
+                if current_app_connector_id in short_id_list :
+                    TPClient.shortIdUpdate(
+                        current_app_connector_id,
+                        int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
 
     def update_mute(self, muted):
         """ when mute state is changed by user or through other app """
@@ -245,23 +251,30 @@ def stateUpdate():
         sleep(0.5)
         TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
 
-        master_volume = getMasterVolume()
+        short_id_list = TPClient.shortIdTracker
 
-        TPClient.connectorUpdate(
-                f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
-                master_volume)
+        # Update master volume
+        master_volume = getMasterVolume()
+        master_volume_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume"
+        if master_volume_connector_id in short_id_list:
+            TPClient.shortIdUpdate(
+                    short_id_list[master_volume_connector_id],
+                    master_volume)
         
         TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
 
         activeWindow = getActiveExecutablePath()
+        current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
         if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-            TPClient.connectorUpdate(
-                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+            if current_app_connector_id in short_id_list:
+                TPClient.shortIdUpdate(
+                    short_id_list[current_app_connector_id],
                     int(current_app_volume*100.0))
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
         else:
-            TPClient.connectorUpdate(
-                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+            if current_app_connector_id in short_id_list:
+                TPClient.shortIdUpdate(
+                    short_id_list[current_app_connector_id],
                     0)
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], 0)
 
@@ -431,7 +444,9 @@ def connectors(data):
                 volumeChanger(data['data'][0]['value'], "Set", data['value'])
             except Exception as e:
                 g_log.debug(f"Exception in other app volume change Error: " + str(e))
-    
+
+
+
     elif data["connectorId"] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"]:
         device = "default"
         if data['data'][0]['value'].lower() != "default":

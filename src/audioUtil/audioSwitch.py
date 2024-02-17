@@ -9,7 +9,7 @@ from pycaw.pycaw import (DEVICE_STATE, AudioUtilities, EDataFlow,
 
 from . import policyconfig as pc
 
-audioDll = ctypes.CDLL("AudioDLL.dll")
+audioDll = ctypes.CDLL("src/AudioDLL.dll")
 
 class MyAudioUtilities(AudioUtilities):
     @staticmethod
