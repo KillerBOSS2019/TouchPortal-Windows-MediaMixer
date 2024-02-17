@@ -78,7 +78,7 @@ PLUGIN_ENTRY_INDENT = -1
 PLUGIN_ROOT = "TouchPortalMediaMixer"
 
 """ Path to icon file used in entry.tp for category `imagepath`, if any. If left blank, TP will use a default icon. """
-PLUGIN_ICON = r"icon-24.png"
+PLUGIN_ICON = r"icon.png"
 
 """ This tells tppbuild where you want finished build tpp to be saved at. Default "./" meaning current dir where tppbuild is running from. """
 OUTPUT_PATH = r"./"

@@ -129,6 +129,7 @@ class WinAudioCallBack(MagicSession):
         when status changed
         (see callback -> AudioSessionEvents -> OnStateChanged)
         """
+        
         if self.app_name not in audio_ignore_list:
             if new_state == AudioSessionState.Inactive:
                 # AudioSessionStateInactive
@@ -155,13 +156,13 @@ class WinAudioCallBack(MagicSession):
             TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.volume", str(round(new_volume*100)))
             #print(f"{self.app_name} NEW VOLUME", str(round(new_volume*100)))
             TPClient.connectorUpdate(
-                f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}",
+                f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}",
                 round(new_volume*100))
             
             """Checking for Current App If Its Active, Adjust it also"""
             if (activeWindow := getActiveExecutablePath()) != "":
                 TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                     int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
 
     def update_mute(self, muted):
@@ -247,7 +248,7 @@ def stateUpdate():
         master_volume = getMasterVolume()
 
         TPClient.connectorUpdate(
-                f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
+                f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
                 master_volume)
         
         TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
@@ -255,12 +256,12 @@ def stateUpdate():
         activeWindow = getActiveExecutablePath()
         if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
             TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                     int(current_app_volume*100.0))
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
         else:
             TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+                    f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
                     0)
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], 0)
 
@@ -308,7 +309,6 @@ def run_callback():
     except Exception as e:
         g_log.info(e, exc_info=True)
 
-    
 
 # Settings handler
 @TPClient.on(TP.TYPES.onSettingUpdate)
@@ -353,7 +353,21 @@ def onAction(data):
         # for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
         #     if device.FriendlyName == action_data[1]['value']:
         #         audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
-                
+
+    elif actionid == TP_PLUGIN_ACTIONS["ToggleOut/Input"]["id"] and action_data[0]['value'] != "Pick One":
+        deviceId = audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value'])
+        currentDeviceId = deviceId.get(getDevicebydata(dataMapper[action_data[0]['value']], dataMapper[action_data[3]['value']]))
+        choiceDeviceId1 = deviceId.get(action_data[1]['value'])
+        choiceDeviceId2 = deviceId.get(action_data[2]['value'])
+        if (choiceDeviceId1,choiceDeviceId2):
+            if choiceDeviceId1 == currentDeviceId:
+                audioSwitch.switchOutput(choiceDeviceId2, dataMapper[action_data[3]['value']])
+            else:
+                audioSwitch.switchOutput(choiceDeviceId1, dataMapper[action_data[3]['value']])
+        # for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
+        #     if device.FriendlyName == action_data[1]['value']:
+        #         audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
+               
     elif actionid == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and action_data[2]["value"] != "Pick One":
         deviceId = ""
         if (action_data[1]["value"] != "Default"):
@@ -435,6 +449,13 @@ def onListChange(data):
         data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
             updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], data['instanceId'])
+        except Exception as e:
+            g_log.info("Update device input/output KeyError: " + str(e))
+    elif data['actionId'] == TP_PLUGIN_ACTIONS["ToggleOut/Input"]['id'] and \
+        data['listId'] == TP_PLUGIN_ACTIONS["ToggleOut/Input"]["data"]["optionSel"]["id"]:
+        try:
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ToggleOut/Input"]['data']['deviceOption1']['id'], data['instanceId'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ToggleOut/Input"]['data']['deviceOption2']['id'], data['instanceId'])
         except Exception as e:
             g_log.info("Update device input/output KeyError: " + str(e))
     elif data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and \
