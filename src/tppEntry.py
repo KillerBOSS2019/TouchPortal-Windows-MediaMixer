@@ -383,6 +383,7 @@ TP_PLUGIN_STATES = {
     'currentAppVolume': {
         'category': "main",
         'id': PLUGIN_ID + ".state.currentAppVolume",
+        'type': "text",
         "desc": "Volume Mixer: focused app volume",
         "default": ""
     },
@@ -391,6 +392,6 @@ TP_PLUGIN_STATES = {
         'id': PLUGIN_ID + ".state.currentMasterVolume",
         'type': "text",
         'desc': "Volume Mixer: Get Current Master volume",
-        'default': "0"
+        'default': ""
     }
 }

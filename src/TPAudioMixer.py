@@ -359,7 +359,7 @@ def onAction(data):
         currentDeviceId = deviceId.get(getDevicebydata(dataMapper[action_data[0]['value']], dataMapper[action_data[3]['value']]))
         choiceDeviceId1 = deviceId.get(action_data[1]['value'])
         choiceDeviceId2 = deviceId.get(action_data[2]['value'])
-        if (choiceDeviceId1,choiceDeviceId2):
+        if choiceDeviceId1 is not None and choiceDeviceId2 is not None:
             if choiceDeviceId1 == currentDeviceId:
                 audioSwitch.switchOutput(choiceDeviceId2, dataMapper[action_data[3]['value']])
             else:
