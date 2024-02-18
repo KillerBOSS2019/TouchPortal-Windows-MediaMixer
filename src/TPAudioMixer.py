@@ -152,7 +152,6 @@ class WinAudioCallBack(MagicSession):
         when volume is changed externally - Updating Sliders and Volume States
         (see callback -> AudioSessionEvents -> OnSimpleVolumeChanged )
         """
-        short_id_list = TPClient.shortIdTracker
 
         if self.app_name not in audio_ignore_list:
             TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.volume", str(round(new_volume*100)))
@@ -251,8 +250,6 @@ def stateUpdate():
         sleep(0.5)
         TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
 
-        short_id_list = TPClient.shortIdTracker
-
         # Update master volume
         master_volume = getMasterVolume()
         master_volume_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume"
@@ -304,12 +301,16 @@ def handleSettings(settings, on_connect=False):
 @TPClient.on(TP.TYPES.onConnect)
 def onConnect(data):
     global running
+    global short_id_list
+
     g_log.info(f"Connected to TP v{data.get('tpVersionString', '?')}, plugin v{data.get('pluginVersion', '?')}.")
     g_log.debug(f"Connection: {data}")
     if settings := data.get('settings'):
         handleSettings(settings, True)
 
     running = True
+    short_id_list = TPClient.shortIdTracker
+
     run_callback()
     #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
     
@@ -493,6 +494,10 @@ def onListChange(data):
     #         updateDevice(data['value'], listId, data['instanceId'])
     #     except Exception as e:
     #         g_log.warning("Update device setDeviceVolume error " + str(e))
+
+@TPClient.on(TP.TYPES.shortConnectorIdNotification)
+def shortConnectorIdNotification(data):
+    short_id_list = TPClient.shortIdTracker
 
 # Shutdown handler
 @TPClient.on(TP.TYPES.onShutdown)
