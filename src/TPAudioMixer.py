@@ -165,6 +165,7 @@ class WinAudioCallBack(MagicSession):
             """Checking for Current App If Its Active, Adjust it also"""
             if (activeWindow := getActiveExecutablePath()) != "":
                 current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
+
                 if current_app_connector_id in TPClient.shortIdTracker :
                     TPClient.shortIdUpdate(
                         TPClient.shortIdTracker[current_app_connector_id],
@@ -266,8 +267,8 @@ def stateUpdate():
             if current_app_connector_id in TPClient.shortIdTracker:
                 TPClient.shortIdUpdate(
                     TPClient.shortIdTracker[current_app_connector_id],
-                    int(current_app_volume*100.0))
-            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
+                    int(current_app_volume*100))
+            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100)))
         else:
             if current_app_connector_id in TPClient.shortIdTracker:
                 TPClient.shortIdUpdate(
