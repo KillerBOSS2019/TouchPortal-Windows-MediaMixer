@@ -1,4 +1,4 @@
-__version__ = 151
+__version__ = 152
 
 PLUGIN_ID = "com.github.KillerBOSS2019.WinMediaMixer"
 
@@ -33,8 +33,8 @@ TP_PLUGIN_SETTINGS = {
 TP_PLUGIN_CATEGORIES = {
     "main": {
         'id': PLUGIN_ID + ".main",
-        'name' : "Author: KillerBOSS",
-        'imagepath' : "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\icon-24.png"
+        'name' : "Windows Media Mixer",
+        'imagepath' : "%TP_PLUGIN_FOLDER%TouchPortalMediaMixer\\icon.png"
     }
 }
 
@@ -206,6 +206,59 @@ TP_PLUGIN_ACTIONS = {
             },
         }
     },
+    'ToggleOut/Input': {
+        # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
+        'category': "main",
+        'id': PLUGIN_ID + ".act.ToggleAudioOutput",
+        'name': 'Audio Output/Input Device Toggle',
+        'prefix': TP_PLUGIN_CATEGORIES['main']['name'],
+        'type': "communicate",
+        'tryInline': True,
+        # 'format' tokens like $[1] will be replaced in the generated JSON with the corresponding data id wrapped with "{$...$}".
+        # Numeric token values correspond to the order in which the data items are listed here, while text tokens correspond
+        # to the last part of a dotted data ID (the part after the last period; letters, numbers, and underscore allowed).
+        'format': "Toggle audio device$[1]$[2]$[3]$[4]",
+        "doc": "Toggle Default Audio Devices",
+        'data': {
+            'optionSel': {
+                'id': PLUGIN_ID + ".act.ToggleAudioOutput.choice",
+                # "text" is the default type and could be omitted here
+                'type': "choice",
+                'label': "process list",
+                'default': "Pick One",
+                "valueChoices": [
+                    "Output",
+                    "Input"
+                ]
+            },
+            'deviceOption1': {
+                'id': PLUGIN_ID + ".act.ToggleAudioOutput.data.device1",
+                'type': "choice",
+                'label': "Device choice list",
+                'default': "",
+                "valueChoices": []
+            },
+            'deviceOption2': {
+                'id': PLUGIN_ID + ".act.ToggleAudioOutput.data.device2",
+                'type': "choice",
+                'label': "Device choice list",
+                'default': "",
+                "valueChoices": []
+            },
+            'setType': {
+                'id': PLUGIN_ID + ".act.ToggleAudioOutput.setType",
+                # "text" is the default type and could be omitted here
+                'type': "choice",
+                'label': "Set audio device type",
+                'default': "Default",
+                "valueChoices": [
+                    "Default",
+                    "Communications"
+                ]
+                
+            },
+        }
+    },
     'setDeviceVolume': {
         # 'category' is optional, if omitted then this action will be added to all, or the only, category(ies)
         'category': "main",
@@ -330,6 +383,7 @@ TP_PLUGIN_STATES = {
     'currentAppVolume': {
         'category': "main",
         'id': PLUGIN_ID + ".state.currentAppVolume",
+        'type': "text",
         "desc": "Volume Mixer: focused app volume",
         "default": ""
     },
@@ -338,6 +392,6 @@ TP_PLUGIN_STATES = {
         'id': PLUGIN_ID + ".state.currentMasterVolume",
         'type': "text",
         'desc': "Volume Mixer: Get Current Master volume",
-        'default': "0"
+        'default': ""
     }
 }

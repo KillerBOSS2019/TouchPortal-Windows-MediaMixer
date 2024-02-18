@@ -129,6 +129,7 @@ class WinAudioCallBack(MagicSession):
         when status changed
         (see callback -> AudioSessionEvents -> OnStateChanged)
         """
+        
         if self.app_name not in audio_ignore_list:
             if new_state == AudioSessionState.Inactive:
                 # AudioSessionStateInactive
@@ -151,18 +152,24 @@ class WinAudioCallBack(MagicSession):
         when volume is changed externally - Updating Sliders and Volume States
         (see callback -> AudioSessionEvents -> OnSimpleVolumeChanged )
         """
+
         if self.app_name not in audio_ignore_list:
             TPClient.stateUpdate(PLUGIN_ID + f".createState.{self.app_name}.volume", str(round(new_volume*100)))
             #print(f"{self.app_name} NEW VOLUME", str(round(new_volume*100)))
-            TPClient.connectorUpdate(
-                f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}",
-                round(new_volume*100))
-            
+            app_connector_id =f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}"
+
+            if app_connector_id in TPClient.shortIdTracker :
+                TPClient.shortIdUpdate(
+                    TPClient.shortIdTracker[app_connector_id],
+                    round(new_volume*100))
             """Checking for Current App If Its Active, Adjust it also"""
             if (activeWindow := getActiveExecutablePath()) != "":
-                TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                    int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
+                current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
+
+                if current_app_connector_id in TPClient.shortIdTracker :
+                    TPClient.shortIdUpdate(
+                        TPClient.shortIdTracker[current_app_connector_id],
+                        int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
 
     def update_mute(self, muted):
         """ when mute state is changed by user or through other app """
@@ -244,23 +251,28 @@ def stateUpdate():
         sleep(0.5)
         TPClient.stateUpdate(TP_PLUGIN_STATES['FocusedAPP']['id'], pygetwindow.getActiveWindowTitle())
 
+        # Update master volume
         master_volume = getMasterVolume()
-
-        TPClient.connectorUpdate(
-                f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume",
-                master_volume)
+        master_volume_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume"
+        if master_volume_connector_id in TPClient.shortIdTracker:
+            TPClient.shortIdUpdate(
+                    TPClient.shortIdTracker[master_volume_connector_id],
+                    master_volume)
         
         TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
 
         activeWindow = getActiveExecutablePath()
+        current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
         if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-            TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
-                    int(current_app_volume*100.0))
-            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
+            if current_app_connector_id in TPClient.shortIdTracker:
+                TPClient.shortIdUpdate(
+                    TPClient.shortIdTracker[current_app_connector_id],
+                    int(current_app_volume*100))
+            TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100)))
         else:
-            TPClient.connectorUpdate(
-                    f"{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app",
+            if current_app_connector_id in TPClient.shortIdTracker:
+                TPClient.shortIdUpdate(
+                    TPClient.shortIdTracker[current_app_connector_id],
                     0)
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], 0)
 
@@ -290,12 +302,14 @@ def handleSettings(settings, on_connect=False):
 @TPClient.on(TP.TYPES.onConnect)
 def onConnect(data):
     global running
+
     g_log.info(f"Connected to TP v{data.get('tpVersionString', '?')}, plugin v{data.get('pluginVersion', '?')}.")
     g_log.debug(f"Connection: {data}")
     if settings := data.get('settings'):
         handleSettings(settings, True)
 
     running = True
+
     run_callback()
     #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
     
@@ -308,7 +322,6 @@ def run_callback():
     except Exception as e:
         g_log.info(e, exc_info=True)
 
-    
 
 # Settings handler
 @TPClient.on(TP.TYPES.onSettingUpdate)
@@ -353,7 +366,21 @@ def onAction(data):
         # for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
         #     if device.FriendlyName == action_data[1]['value']:
         #         audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
-                
+
+    elif actionid == TP_PLUGIN_ACTIONS["ToggleOut/Input"]["id"] and action_data[0]['value'] != "Pick One":
+        deviceId = audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value'])
+        currentDeviceId = deviceId.get(getDevicebydata(dataMapper[action_data[0]['value']], dataMapper[action_data[3]['value']]))
+        choiceDeviceId1 = deviceId.get(action_data[1]['value'])
+        choiceDeviceId2 = deviceId.get(action_data[2]['value'])
+        if (choiceDeviceId1 and choiceDeviceId2):
+            if choiceDeviceId1 == currentDeviceId:
+                audioSwitch.switchOutput(choiceDeviceId2, dataMapper[action_data[3]['value']])
+            else:
+                audioSwitch.switchOutput(choiceDeviceId1, dataMapper[action_data[3]['value']])
+        # for device in audioSwitch.MyAudioUtilities.getAllDevices(action_data[0]['value']):
+        #     if device.FriendlyName == action_data[1]['value']:
+        #         audioSwitch.switchOutput(device.id, dataMapper[action_data[2]['value']])
+               
     elif actionid == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and action_data[2]["value"] != "Pick One":
         deviceId = ""
         if (action_data[1]["value"] != "Default"):
@@ -417,7 +444,9 @@ def connectors(data):
                 volumeChanger(data['data'][0]['value'], "Set", data['value'])
             except Exception as e:
                 g_log.debug(f"Exception in other app volume change Error: " + str(e))
-    
+
+
+
     elif data["connectorId"] == TP_PLUGIN_CONNECTORS["Windows Audio"]["id"]:
         device = "default"
         if data['data'][0]['value'].lower() != "default":
@@ -435,6 +464,13 @@ def onListChange(data):
         data['listId'] == TP_PLUGIN_ACTIONS["ChangeOut/Input"]["data"]["optionSel"]["id"]:
         try:
             updateDevice(data['value'], TP_PLUGIN_ACTIONS["ChangeOut/Input"]['data']['deviceOption']['id'], data['instanceId'])
+        except Exception as e:
+            g_log.info("Update device input/output KeyError: " + str(e))
+    elif data['actionId'] == TP_PLUGIN_ACTIONS["ToggleOut/Input"]['id'] and \
+        data['listId'] == TP_PLUGIN_ACTIONS["ToggleOut/Input"]["data"]["optionSel"]["id"]:
+        try:
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ToggleOut/Input"]['data']['deviceOption1']['id'], data['instanceId'])
+            updateDevice(data['value'], TP_PLUGIN_ACTIONS["ToggleOut/Input"]['data']['deviceOption2']['id'], data['instanceId'])
         except Exception as e:
             g_log.info("Update device input/output KeyError: " + str(e))
     elif data['actionId'] == TP_PLUGIN_ACTIONS["AppAudioSwitch"]["id"] and \
@@ -457,6 +493,7 @@ def onListChange(data):
     #         updateDevice(data['value'], listId, data['instanceId'])
     #     except Exception as e:
     #         g_log.warning("Update device setDeviceVolume error " + str(e))
+
 
 # Shutdown handler
 @TPClient.on(TP.TYPES.onShutdown)
