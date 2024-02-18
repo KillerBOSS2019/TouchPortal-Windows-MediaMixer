@@ -158,16 +158,16 @@ class WinAudioCallBack(MagicSession):
             #print(f"{self.app_name} NEW VOLUME", str(round(new_volume*100)))
             app_connector_id =f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}={self.app_name}"
 
-            if app_connector_id in short_id_list :
+            if app_connector_id in TPClient.shortIdTracker :
                 TPClient.shortIdUpdate(
-                    short_id_list[app_connector_id],
+                    TPClient.shortIdTracker[app_connector_id],
                     round(new_volume*100))
             """Checking for Current App If Its Active, Adjust it also"""
             if (activeWindow := getActiveExecutablePath()) != "":
                 current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
-                if current_app_connector_id in short_id_list :
+                if current_app_connector_id in TPClient.shortIdTracker :
                     TPClient.shortIdUpdate(
-                        current_app_connector_id,
+                        TPClient.shortIdTracker[current_app_connector_id],
                         int(new_volume*100) if os.path.basename(activeWindow) == self.app_name else 0)
 
     def update_mute(self, muted):
@@ -253,9 +253,9 @@ def stateUpdate():
         # Update master volume
         master_volume = getMasterVolume()
         master_volume_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Master Volume"
-        if master_volume_connector_id in short_id_list:
+        if master_volume_connector_id in TPClient.shortIdTracker:
             TPClient.shortIdUpdate(
-                    short_id_list[master_volume_connector_id],
+                    TPClient.shortIdTracker[master_volume_connector_id],
                     master_volume)
         
         TPClient.stateUpdate(TP_PLUGIN_STATES["master volume"]["id"], str(master_volume))
@@ -263,15 +263,15 @@ def stateUpdate():
         activeWindow = getActiveExecutablePath()
         current_app_connector_id = f"pc_{TP_PLUGIN_INFO['id']}_{TP_PLUGIN_CONNECTORS['APP control']['id']}|{TP_PLUGIN_CONNECTORS['APP control']['data']['appchoice']['id']}=Current app"
         if activeWindow != "" and activeWindow != None and (current_app_volume := AudioController(os.path.basename(activeWindow)).process_volume()):
-            if current_app_connector_id in short_id_list:
+            if current_app_connector_id in TPClient.shortIdTracker:
                 TPClient.shortIdUpdate(
-                    short_id_list[current_app_connector_id],
+                    TPClient.shortIdTracker[current_app_connector_id],
                     int(current_app_volume*100.0))
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], str(int(current_app_volume*100.0)))
         else:
-            if current_app_connector_id in short_id_list:
+            if current_app_connector_id in TPClient.shortIdTracker:
                 TPClient.shortIdUpdate(
-                    short_id_list[current_app_connector_id],
+                    TPClient.shortIdTracker[current_app_connector_id],
                     0)
             TPClient.stateUpdate(TP_PLUGIN_STATES['currentAppVolume']['id'], 0)
 
@@ -301,7 +301,6 @@ def handleSettings(settings, on_connect=False):
 @TPClient.on(TP.TYPES.onConnect)
 def onConnect(data):
     global running
-    global short_id_list
 
     g_log.info(f"Connected to TP v{data.get('tpVersionString', '?')}, plugin v{data.get('pluginVersion', '?')}.")
     g_log.debug(f"Connection: {data}")
@@ -309,7 +308,6 @@ def onConnect(data):
         handleSettings(settings, True)
 
     running = True
-    short_id_list = TPClient.shortIdTracker
 
     run_callback()
     #g_log.debug(f"--------- Magic already in session!! ---------\n------{err}------")
@@ -495,9 +493,6 @@ def onListChange(data):
     #     except Exception as e:
     #         g_log.warning("Update device setDeviceVolume error " + str(e))
 
-@TPClient.on(TP.TYPES.shortConnectorIdNotification)
-def shortConnectorIdNotification(data):
-    short_id_list = TPClient.shortIdTracker
 
 # Shutdown handler
 @TPClient.on(TP.TYPES.onShutdown)
